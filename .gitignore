@@ -2,16 +2,27 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 venv/
 .venv/
 *.egg-info/
 dist/
 build/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Environment
+# Segredos — NUNCA commitar
 .env
-.env.local
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*_credentials.json
+*_token.txt
 
 # Database
 *.db
@@ -20,14 +31,18 @@ build/
 # Node
 node_modules/
 dist/
+.npm/
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDE
 .vscode/settings.json
 .idea/
+*.swp
+*.swo
 
 # Logs
 logs/
