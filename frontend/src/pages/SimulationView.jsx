@@ -1,75 +1,128 @@
-import { useParams } from 'react-router-dom'
-import {
-  Chart as ChartJS,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Legend,
-  Tooltip,
-} from 'chart.js'
+import { useEffect, useRef, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Line } from 'react-chartjs-2'
-import useSimulationSSE from '../hooks/useSimulationSSE.js'
+import {
+  Chart as ChartJS, CategoryScale, LinearScale,
+  PointElement, LineElement, Title, Tooltip, Legend,
+} from 'chart.js'
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+
+const COLORS = { S: '#60a5fa', E: '#fbbf24', I: '#f87171', R: '#34d399' }
+
+function MetricCard({ label, value, color }) {
+  return (
+    <div style={{
+      background: '#1a1d27',
+      border: `1px solid ${color}44`,
+      borderRadius: '10px',
+      padding: '1rem 1.5rem',
+      textAlign: 'center',
+      minWidth: '120px',
+    }}>
+      <div style={{ color, fontSize: '1.75rem', fontWeight: 700 }}>{value}</div>
+      <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.25rem' }}>{label}</div>
+    </div>
+  )
+}
 
 export default function SimulationView() {
   const { id } = useParams()
-  const { ticks, isConnected, error } = useSimulationSSE(id)
+  const navigate = useNavigate()
+  const [ticks, setTicks] = useState([])
+  const [done, setDone] = useState(false)
+  const [connected, setConnected] = useState(false)
+  const esRef = useRef(null)
 
-  const data = {
-    labels: ticks.map((t) => `T${t.tick}`),
+  useEffect(() => {
+    if (!id) return
+    const es = new EventSource(`/api/simulation/${id}/stream`)
+    esRef.current = es
+    setConnected(true)
+    es.onmessage = (e) => {
+      const data = JSON.parse(e.data)
+      if (data.done) {
+        setDone(true)
+        es.close()
+        setConnected(false)
+        return
+      }
+      setTicks(prev => [...prev, data])
+    }
+    es.onerror = () => {
+      es.close()
+      setConnected(false)
+    }
+    return () => es.close()
+  }, [id])
+
+  const labels = ticks.map(t => t.tick)
+  const chartData = {
+    labels,
     datasets: [
-      {
-        label: 'Infectados',
-        data: ticks.map((t) => t.infected),
-        borderColor: 'rgb(239,68,68)',
-        backgroundColor: 'rgba(239,68,68,0.1)',
-        tension: 0.3,
-      },
-      {
-        label: 'Expostos',
-        data: ticks.map((t) => t.exposed),
-        borderColor: 'rgb(234,179,8)',
-        backgroundColor: 'rgba(234,179,8,0.1)',
-        tension: 0.3,
-      },
-      {
-        label: 'Recuperados',
-        data: ticks.map((t) => t.recovered),
-        borderColor: 'rgb(34,197,94)',
-        backgroundColor: 'rgba(34,197,94,0.1)',
-        tension: 0.3,
-      },
+      { label: 'Suscetíveis', data: ticks.map(t => t.S), borderColor: COLORS.S, backgroundColor: COLORS.S + '22', tension: 0.3, pointRadius: 0 },
+      { label: 'Expostos',    data: ticks.map(t => t.E), borderColor: COLORS.E, backgroundColor: COLORS.E + '22', tension: 0.3, pointRadius: 0 },
+      { label: 'Infectados',  data: ticks.map(t => t.I), borderColor: COLORS.I, backgroundColor: COLORS.I + '22', tension: 0.3, pointRadius: 0 },
+      { label: 'Recuperados', data: ticks.map(t => t.R), borderColor: COLORS.R, backgroundColor: COLORS.R + '22', tension: 0.3, pointRadius: 0 },
     ],
   }
 
   const options = {
     responsive: true,
-    plugins: { legend: { labels: { color: '#e2e8f0' } } },
+    animation: { duration: 0 },
+    plugins: { legend: { labels: { color: '#94a3b8' } } },
     scales: {
-      x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-      y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+      x: { ticks: { color: '#94a3b8' }, grid: { color: '#2d3148' } },
+      y: { ticks: { color: '#94a3b8' }, grid: { color: '#2d3148' } },
     },
   }
 
+  const last = ticks[ticks.length - 1] || { S: 0, E: 0, I: 0, R: 0 }
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold text-purple-400 mb-2">Simulacao</h2>
-      <p className="text-slate-400 text-sm mb-2">ID: {id}</p>
-      <p className="text-sm mb-6">
-        Status:{' '}
-        <span className={isConnected ? 'text-green-400' : 'text-slate-400'}>
-          {isConnected ? 'Conectado' : 'Aguardando...'}
-        </span>
-      </p>
-      {error && <p className="text-red-400 mb-4">{error}</p>}
-      {ticks.length > 0 ? (
-        <div className="bg-slate-800 rounded-xl p-6">
-          <Line data={data} options={options} />
-        </div>
-      ) : (
-        <p className="text-slate-400">Aguardando dados da simulacao...</p>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ color: '#818cf8', margin: 0 }}>Simulação ao vivo</h2>
+        {connected && <span style={{ color: '#34d399', fontSize: '0.8rem' }}>● transmitindo</span>}
+        {done && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>● concluída</span>}
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <MetricCard label="Suscetíveis" value={last.S} color={COLORS.S} />
+        <MetricCard label="Expostos"    value={last.E} color={COLORS.E} />
+        <MetricCard label="Infectados"  value={last.I} color={COLORS.I} />
+        <MetricCard label="Recuperados" value={last.R} color={COLORS.R} />
+      </div>
+
+      <div style={{
+        background: '#1a1d27',
+        border: '1px solid #2d3148',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '1.5rem',
+      }}>
+        {ticks.length > 0
+          ? <Line data={chartData} options={options} />
+          : <p style={{ color: '#94a3b8', textAlign: 'center', padding: '3rem 0' }}>Aguardando dados...</p>
+        }
+      </div>
+
+      {done && (
+        <button
+          onClick={() => navigate('/simulate')}
+          style={{
+            background: '#4f46e5',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 2rem',
+            fontSize: '1rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Nova simulação →
+        </button>
       )}
     </div>
   )
