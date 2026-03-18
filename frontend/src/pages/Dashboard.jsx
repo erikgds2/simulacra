@@ -1,37 +1,64 @@
 import { useNavigate } from 'react-router-dom'
 
-const metricas = [
-  { label: 'Fontes de dados', valor: '2', desc: 'Lupa + Aos Fatos' },
-  { label: 'Max. agentes', valor: '1.000', desc: 'por simulacao' },
-  { label: 'Modelo', valor: 'SEIR', desc: 'Barabasi-Albert' },
+const cards = [
+  {
+    title: 'Como funciona',
+    text: 'Simula a propagação de desinformação em redes sociais usando o modelo SEIR em grafos Barabási-Albert.',
+  },
+  {
+    title: 'Fontes de dados',
+    text: 'Seeds coletadas da Agência Lupa, Aos Fatos e GDELT — bases de verificação de fatos do Brasil.',
+  },
+  {
+    title: 'Intervenções',
+    text: 'Teste 4 estratégias: fact-check, remoção, contra-narrativa e aviso de rótulo. Veja qual funciona mais.',
+  },
 ]
 
 export default function Dashboard() {
   const navigate = useNavigate()
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-[90vh] px-4 text-center">
-      <h1 className="text-5xl font-bold text-purple-400 mb-3">DesinfoLab</h1>
-      <p className="text-slate-400 text-lg max-w-xl mb-10">
-        Motor de simulacao de propagacao de desinformacao no Brasil.
-        Modele como noticias falsas se espalham em redes sociais usando swarm intelligence e SEIR.
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 2rem' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#818cf8', marginBottom: '0.5rem' }}>
+        DesinfoLab
+      </h1>
+      <p style={{ color: '#94a3b8', marginBottom: '2.5rem', fontSize: '1.05rem' }}>
+        Simulador de propagação de desinformação no Brasil
       </p>
 
-      <div className="flex gap-6 mb-10 flex-wrap justify-center">
-        {metricas.map(({ label, valor, desc }) => (
-          <div key={label} className="bg-slate-800 rounded-xl px-6 py-4 text-center min-w-[120px]">
-            <div className="text-2xl font-bold text-purple-300">{valor}</div>
-            <div className="text-slate-300 text-sm font-medium">{label}</div>
-            <div className="text-slate-500 text-xs">{desc}</div>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '1.25rem',
+        marginBottom: '2.5rem',
+      }}>
+        {cards.map(({ title, text }) => (
+          <div key={title} style={{
+            background: '#1a1d27',
+            border: '1px solid #2d3148',
+            borderRadius: '12px',
+            padding: '1.5rem',
+          }}>
+            <h3 style={{ color: '#c7d2fe', marginBottom: '0.75rem', fontSize: '1rem' }}>{title}</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6 }}>{text}</p>
           </div>
         ))}
       </div>
 
       <button
         onClick={() => navigate('/simulate')}
-        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-10 rounded-lg transition-colors duration-200 text-lg"
+        style={{
+          background: '#4f46e5',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '0.75rem 2rem',
+          fontSize: '1rem',
+          fontWeight: 600,
+          cursor: 'pointer',
+        }}
       >
-        Nova Simulacao
+        Iniciar nova simulação →
       </button>
     </div>
   )
