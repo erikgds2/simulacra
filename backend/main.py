@@ -26,9 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# from routers import simulation, report
-# app.include_router(simulation.router, prefix="/simulate", tags=["Simulacao"])
-# app.include_router(report.router, prefix="/report", tags=["Relatorio"])
+from routers.simulation import router as simulation_router
+app.include_router(simulation_router)
 
 
 @app.on_event("startup")
