@@ -1,27 +1,35 @@
-# Politica de Seguranca — DesinfoLab
+# Política de segurança — DesinfoLab
 
-## Variaveis de Ambiente
+## Credenciais e segredos
 
-Nunca commite o arquivo `.env`. Use sempre `.env.example` como referencia.
+- **Nunca** commite arquivos `.env`, `*.key`, `*.pem` ou qualquer arquivo com credenciais reais
+- O arquivo `.env.example` contém apenas placeholders — use-o como template
+- A `ANTHROPIC_API_KEY` deve ser mantida somente no arquivo `.env` local ou nas variáveis de ambiente do servidor de deploy
 
-| Variavel | Descricao | Onde obter |
+## Variáveis de ambiente obrigatórias
+
+| Variável | Descrição | Obrigatória |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Chave da API Claude | console.anthropic.com |
-| `TWITTER_BEARER_TOKEN` | Token da API X/Twitter | developer.twitter.com |
-| `DATABASE_URL` | URL do banco de dados | local: sqlite:///./desinfolab.db |
+| `ANTHROPIC_API_KEY` | Chave da API Anthropic | Sim |
+| `ALLOWED_ORIGINS` | Origens CORS permitidas | Não (default: localhost) |
+| `TWITTER_BEARER_TOKEN` | Token Twitter/X | Não |
 
-## Checklist antes de commitar
+## Limites de rate
 
-- [ ] `git status` — nenhum `.env` ou arquivo com credenciais
-- [ ] `grep -r "sk-ant-\|ghp_\|Bearer " .` — nenhum token no codigo
-- [ ] `.env` esta listado no `.gitignore`
+A API possui os seguintes limites por IP:
+
+- `POST /simulation/start` — 10 requisições/minuto
+- `GET /simulation/:id/stream` — 20 requisições/minuto
+- `POST /seeds/collect` — 5 requisições/minuto
+- Global — 60 requisições/minuto
 
 ## Reportar vulnerabilidades
 
-Abra uma issue privada no repositorio ou contate o mantenedor diretamente.
+Se encontrar uma vulnerabilidade de segurança, abra uma issue privada ou envie email para o mantenedor. Não abra issues públicas para vulnerabilidades de segurança.
 
-## O que NAO fazer
+## Checklist antes de abrir Pull Request
 
-- Nunca embuta tokens diretamente no codigo-fonte
-- Nunca use `git add .` sem revisar o que sera commitado
-- Nunca commite arquivos `.env`, `.pem`, `.key` ou similares
+- [ ] Nenhuma chave ou credencial no código
+- [ ] Nenhum `print()` ou `console.log()` com dados sensíveis
+- [ ] Inputs validados com Pydantic antes de processar
+- [ ] Nenhuma dependência nova sem justificativa no PR

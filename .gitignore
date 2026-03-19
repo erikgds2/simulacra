@@ -11,12 +11,18 @@ build/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+htmlcov/
+.coverage
 
 # Segredos — NUNCA commitar
 .env
+.env.local
+.env.production
 .env.*
 !.env.example
 secrets/
+_secret
+_private
 *.pem
 *.key
 *.p12
@@ -26,12 +32,14 @@ secrets/
 
 # Database
 *.db
+*.sqlite
 *.sqlite3
 
 # Node
 node_modules/
 dist/
-.npm/
+.cache/
+*.local
 
 # OS
 .DS_Store
