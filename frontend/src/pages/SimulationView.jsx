@@ -5,6 +5,7 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale,
   PointElement, LineElement, Title, Tooltip, Legend,
 } from 'chart.js'
+import PropagationGraph from '../components/PropagationGraph'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -107,18 +108,20 @@ export default function SimulationView() {
         }
       </div>
 
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+          Grafo de propagação — estado atual da rede ({ticks.length > 0 ? `tick ${ticks[ticks.length-1].tick}` : 'aguardando'})
+        </p>
+        <PropagationGraph ticks={ticks} numAgents={200} />
+      </div>
+
       {done && (
         <button
           onClick={() => navigate('/simulate')}
           style={{
-            background: '#4f46e5',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '0.75rem 2rem',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
+            background: '#4f46e5', color: '#fff', border: 'none',
+            borderRadius: '8px', padding: '0.75rem 2rem',
+            fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
           }}
         >
           Nova simulação →
