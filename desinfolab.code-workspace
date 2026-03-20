@@ -1,0 +1,57 @@
+{
+  "folders": [
+    {
+      "name": "DesinfoLab",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "explorer.openEditors.visible": 5,
+    "workbench.colorTheme": "Default Dark Modern",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/.venv": true,
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.pytest_cache": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true,
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.python"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.pylance",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-json"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Backend (uvicorn)",
+        "type": "python",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": ["main:app", "--reload", "--port", "8000"],
+        "cwd": "${workspaceFolder}/backend",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}/backend"
+        }
+      }
+    ]
+  }
+}
