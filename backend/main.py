@@ -2,6 +2,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
+from database import init_db
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +30,8 @@ def check_env() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     check_env()
-    logger.info("DesinfoLab iniciado — variáveis de ambiente OK")
+    init_db()
+    logger.info("DesinfoLab iniciado — variáveis de ambiente OK, banco inicializado")
     yield
     logger.info("DesinfoLab encerrado")
 
