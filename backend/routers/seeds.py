@@ -94,6 +94,7 @@ async def _fetch_rss(source: dict) -> list[dict]:
 @router.post("/collect")
 @limiter.limit("5/minute")
 async def collect_seeds(request: Request):
+    from database import save_seed_to_db, count_seeds
     index = _load_index()
     existing_urls = {s["url"] for s in index["seeds"]}
     new_seeds = []
@@ -107,6 +108,7 @@ async def collect_seeds(request: Request):
                     json.dumps(entry, ensure_ascii=False, indent=2),
                     encoding="utf-8",
                 )
+                save_seed_to_db(entry)
                 new_seeds.append(entry)
                 existing_urls.add(entry["url"])
 
@@ -118,6 +120,17 @@ async def collect_seeds(request: Request):
         "collected": len(new_seeds),
         "total": len(index["seeds"]),
         "last_updated": index["last_updated"],
+    }
+
+
+@router.get("/db/list")
+async def list_seeds_db(limit: int = 50, offset: int = 0):
+    from database import list_seeds_from_db, count_seeds
+    if limit > 100:
+        raise HTTPException(status_code=400, detail="limit maximo e 100")
+    return {
+        "total": count_seeds(),
+        "seeds": list_seeds_from_db(limit=limit, offset=offset),
     }
 
 
