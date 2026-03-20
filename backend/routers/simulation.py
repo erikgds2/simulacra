@@ -11,15 +11,24 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from agents.simulation_engine import SimulationEngine
+from database import (
+    finish_simulation,
+    get_simulation,
+    get_simulation_ticks,
+    list_simulations,
+    save_simulation,
+    save_tick,
+)
 
 router = APIRouter(prefix="/simulation", tags=["simulation"])
 limiter = Limiter(key_func=get_remote_address)
 
-_simulations: dict = {}
+_engines: dict = {}
 
 
 class StartRequest(BaseModel):
     seed_text: str
+    seed_id: Optional[str] = None
     num_agents: int = 200
     intervention: Optional[Literal["fact_check", "removal", "counter_narrative", "label_warning"]] = None
     random_seed: int = 42
@@ -31,16 +40,16 @@ class StartRequest(BaseModel):
         if len(v) < 10:
             raise ValueError("seed_text deve ter pelo menos 10 caracteres")
         if len(v) > 5000:
-            raise ValueError("seed_text não pode ultrapassar 5000 caracteres")
+            raise ValueError("seed_text nao pode ultrapassar 5000 caracteres")
         return bleach.clean(v, tags=[], strip=True)
 
     @field_validator("num_agents")
     @classmethod
     def validate_num_agents(cls, v: int) -> int:
         if v < 10:
-            raise ValueError("num_agents mínimo é 10")
+            raise ValueError("num_agents minimo e 10")
         if v > 1000:
-            raise ValueError("num_agents máximo é 1000")
+            raise ValueError("num_agents maximo e 1000")
         return v
 
     @field_validator("random_seed")
@@ -60,30 +69,59 @@ async def start_simulation(request: Request, req: StartRequest):
         intervention=req.intervention,
         random_seed=req.random_seed,
     )
-    _simulations[sim_id] = {
-        "engine": engine,
-        "config": req.model_dump(),
-        "ticks": [],
-        "seed_text": req.seed_text,
-    }
+    _engines[sim_id] = engine
+    save_simulation(sim_id, req.model_dump())
     return {"simulation_id": sim_id, "status": "ready"}
+
+
+@router.get("/list")
+async def list_all(limit: int = 20):
+    return {"simulations": list_simulations(limit=limit)}
 
 
 @router.get("/{sim_id}/stream")
 @limiter.limit("20/minute")
 async def stream_simulation(request: Request, sim_id: str):
-    if sim_id not in _simulations:
-        raise HTTPException(status_code=404, detail="Simulação não encontrada")
+    sim = get_simulation(sim_id)
+    if not sim:
+        raise HTTPException(status_code=404, detail="Simulacao nao encontrada")
+
+    engine = _engines.get(sim_id)
+    if not engine:
+        ticks = get_simulation_ticks(sim_id)
+        if ticks:
+            async def replay():
+                for tick in ticks:
+                    yield f"data: {json.dumps(tick)}\n\n"
+                    await asyncio.sleep(0.05)
+                yield 'data: {"done": true}\n\n'
+            return StreamingResponse(
+                replay(), media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
+        raise HTTPException(status_code=400, detail="Simulacao nao iniciada")
 
     async def event_generator() -> AsyncGenerator[str, None]:
-        sim = _simulations[sim_id]
-        engine: SimulationEngine = sim["engine"]
+        ticks_data = []
         try:
             for tick_data in engine.run_ticks():
-                sim["ticks"].append(tick_data)
-                payload = json.dumps(tick_data)
-                yield f"data: {payload}\n\n"
+                save_tick(sim_id, tick_data)
+                ticks_data.append(tick_data)
+                yield f"data: {json.dumps(tick_data)}\n\n"
                 await asyncio.sleep(0.15)
+
+            if ticks_data:
+                peak = max(ticks_data, key=lambda t: t["I"])
+                first = ticks_data[0]
+                total = first["S"] + first["E"] + first["I"] + first["R"]
+                finish_simulation(sim_id, {
+                    "peak_infected": peak["I"],
+                    "time_to_peak": peak["tick"],
+                    "total_reach": round((total - ticks_data[-1]["S"]) / total, 3),
+                    "total_ticks": len(ticks_data),
+                })
+
+            _engines.pop(sim_id, None)
             yield 'data: {"done": true}\n\n'
         except Exception as e:
             yield f'data: {{"error": "{str(e)}"}}\n\n'
@@ -91,28 +129,30 @@ async def stream_simulation(request: Request, sim_id: str):
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
 
 @router.get("/{sim_id}/result")
 async def get_result(sim_id: str):
-    if sim_id not in _simulations:
-        raise HTTPException(status_code=404, detail="Simulação não encontrada")
-    sim = _simulations[sim_id]
-    ticks = sim["ticks"]
+    sim = get_simulation(sim_id)
+    if not sim:
+        raise HTTPException(status_code=404, detail="Simulacao nao encontrada")
+    if sim["status"] != "finished":
+        raise HTTPException(status_code=400, detail="Simulacao ainda nao concluida")
+    return sim
+
+
+@router.get("/{sim_id}/graph")
+async def get_graph(sim_id: str):
+    sim = get_simulation(sim_id)
+    if not sim:
+        raise HTTPException(status_code=404, detail="Simulacao nao encontrada")
+    ticks = get_simulation_ticks(sim_id)
     if not ticks:
-        raise HTTPException(status_code=400, detail="Simulação ainda não iniciada")
-    peak = max(ticks, key=lambda t: t["I"])
-    first = ticks[0]
-    total_agents = first["S"] + first["E"] + first["I"] + first["R"]
+        raise HTTPException(status_code=400, detail="Sem dados de ticks")
     return {
         "simulation_id": sim_id,
-        "peak_infected": peak["I"],
-        "time_to_peak": peak["tick"],
-        "total_reach": round((total_agents - ticks[-1]["S"]) / total_agents, 3),
-        "total_ticks": len(ticks),
+        "final_tick": ticks[-1],
+        "ticks": ticks,
     }
