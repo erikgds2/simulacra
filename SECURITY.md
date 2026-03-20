@@ -16,12 +16,12 @@
 
 ## Limites de rate
 
-A API possui os seguintes limites por IP:
-
-- `POST /simulation/start` — 10 requisições/minuto
-- `GET /simulation/:id/stream` — 20 requisições/minuto
-- `POST /seeds/collect` — 5 requisições/minuto
-- Global — 60 requisições/minuto
+| Endpoint | Limite |
+|---|---|
+| `POST /simulation/start` | 10 req/min |
+| `GET /simulation/:id/stream` | 20 req/min |
+| `POST /seeds/collect` | 5 req/min |
+| Global | 60 req/min |
 
 ## Reportar vulnerabilidades
 
