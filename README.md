@@ -1,10 +1,11 @@
 # DesinfoLab
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green?logo=fastapi)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
-![Claude](https://img.shields.io/badge/Claude-Haiku-orange)
-![License](https://img.shields.io/badge/licenca-MIT-blue)
+[![CI](https://github.com/erikgds2/desinfolab/actions/workflows/ci.yml/badge.svg)](https://github.com/erikgds2/desinfolab/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
+[![Claude](https://img.shields.io/badge/Claude-Haiku-orange)](https://www.anthropic.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 **Motor de simulacao de propagacao de desinformacao no Brasil**, baseado em swarm intelligence e modelo epidemiologico SEIR.
 
