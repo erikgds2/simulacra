@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Markdown from 'react-markdown'
+import { apiFetch } from '../api'
 
 const mdComponents = {
   h1: ({ children }) => (
@@ -83,7 +84,7 @@ export default function Report() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/report/${id}`)
+    apiFetch(`/report/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Relatório não encontrado (${res.status})`)
         return res.json()

@@ -6,6 +6,8 @@ import {
   PointElement, LineElement, Title, Tooltip, Legend,
 } from 'chart.js'
 import PropagationGraph from '../components/PropagationGraph'
+import { apiFetch } from '../api'
+import BASE_URL from '../api'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -39,7 +41,7 @@ export default function SimulationView() {
 
   useEffect(() => {
     if (!id) return
-    const es = new EventSource(`/api/simulation/${id}/stream`)
+    const es = new EventSource(`${BASE_URL}/simulation/${id}/stream`)
     esRef.current = es
     setConnected(true)
     es.onmessage = (e) => {
@@ -84,9 +86,8 @@ export default function SimulationView() {
     setGeneratingReport(true)
     setReportError(null)
     try {
-      const res = await fetch('/api/report/generate', {
+      const res = await apiFetch('/report/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ simulation_id: id }),
       })
       if (!res.ok) {
