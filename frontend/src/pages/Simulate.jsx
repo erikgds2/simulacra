@@ -4,11 +4,11 @@ import SeedSelector from '../components/SeedSelector'
 import { apiFetch } from '../api'
 
 const interventions = [
-  { value: '', label: 'Nenhuma' },
-  { value: 'fact_check', label: 'Fact-check (-50% transmissao)' },
-  { value: 'removal', label: 'Remocao (-80% transmissao)' },
-  { value: 'counter_narrative', label: 'Contra-narrativa (-40% transmissao)' },
-  { value: 'label_warning', label: 'Aviso de rotulo (-25% transmissao)' },
+  { value: '', label: 'Nenhuma — propagação livre, sem intervenção' },
+  { value: 'label_warning', label: 'Aviso de rótulo — plataforma marca o conteúdo como contestado (-25%)' },
+  { value: 'counter_narrative', label: 'Contra-narrativa — publicação de conteúdo verdadeiro disputando espaço (-40%)' },
+  { value: 'fact_check', label: 'Fact-check — agência de checagem publica verificação oficial (-50%)' },
+  { value: 'removal', label: 'Remoção — publicação retirada do ar pela plataforma ou autoridade (-80%)' },
 ]
 
 const inputStyle = {

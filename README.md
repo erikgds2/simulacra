@@ -55,13 +55,13 @@ O motor usa o modelo epidemiológico **SEIR** em grafos **Barabási-Albert** —
 
 **Beta por intervenção:**
 
-| Intervenção | Redução na transmissão |
-|---|---|
-| Nenhuma | 0% |
-| Aviso de rótulo | 25% |
-| Contra-narrativa | 40% |
-| Fact-check | 50% |
-| Remoção | 80% |
+| Intervenção | O que faz | Redução na transmissão |
+|---|---|---|
+| Nenhuma | Sem intervenção — propagação livre | 0% |
+| Aviso de rótulo | Plataforma adiciona um aviso na publicação ("conteúdo contestado") sem removê-la | 25% |
+| Contra-narrativa | Publicação de conteúdo verdadeiro que disputa o espaço da fake news nas redes | 40% |
+| Fact-check | Agência de checagem publica verificação oficial desmentindo o conteúdo | 50% |
+| Remoção | Plataforma ou autoridade remove a publicação do ar completamente | 80% |
 
 ---
 
