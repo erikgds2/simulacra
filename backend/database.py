@@ -59,6 +59,15 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_ticks_simulation
                 ON simulation_ticks(simulation_id);
 
+            CREATE TABLE IF NOT EXISTS reports (
+                id TEXT PRIMARY KEY,
+                simulation_id TEXT NOT NULL UNIQUE,
+                markdown TEXT NOT NULL,
+                model TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (simulation_id) REFERENCES simulations(id)
+            );
+
             CREATE INDEX IF NOT EXISTS idx_simulations_created
                 ON simulations(created_at DESC);
         """)
@@ -189,3 +198,30 @@ def list_seeds_from_db(limit: int = 50, offset: int = 0) -> list[dict]:
 def count_seeds() -> int:
     with get_connection() as conn:
         return conn.execute("SELECT COUNT(*) FROM seeds").fetchone()[0]
+
+
+def save_report(report_id: str, sim_id: str, markdown: str, model: str) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO reports (id, simulation_id, markdown, model, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (report_id, sim_id, markdown, model, datetime.now(timezone.utc).isoformat()),
+        )
+
+
+def get_report_by_simulation(sim_id: str) -> dict | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT * FROM reports WHERE simulation_id = ?", (sim_id,)
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def get_report(report_id: str) -> dict | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT * FROM reports WHERE id = ?", (report_id,)
+        ).fetchone()
+        return dict(row) if row else None

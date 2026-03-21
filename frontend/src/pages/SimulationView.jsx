@@ -33,6 +33,8 @@ export default function SimulationView() {
   const [ticks, setTicks] = useState([])
   const [done, setDone] = useState(false)
   const [connected, setConnected] = useState(false)
+  const [generatingReport, setGeneratingReport] = useState(false)
+  const [reportError, setReportError] = useState(null)
   const esRef = useRef(null)
 
   useEffect(() => {
@@ -78,6 +80,27 @@ export default function SimulationView() {
     },
   }
 
+  async function handleGenerateReport() {
+    setGeneratingReport(true)
+    setReportError(null)
+    try {
+      const res = await fetch('/api/report/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ simulation_id: id }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.detail || `Erro ${res.status}`)
+      }
+      const data = await res.json()
+      navigate(`/report/${data.id}`)
+    } catch (err) {
+      setReportError(err.message)
+      setGeneratingReport(false)
+    }
+  }
+
   const last = ticks[ticks.length - 1] || { S: 0, E: 0, I: 0, R: 0 }
 
   return (
@@ -116,16 +139,37 @@ export default function SimulationView() {
       </div>
 
       {done && (
-        <button
-          onClick={() => navigate('/simulate')}
-          style={{
-            background: '#4f46e5', color: '#fff', border: 'none',
-            borderRadius: '8px', padding: '0.75rem 2rem',
-            fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
-          }}
-        >
-          Nova simulação →
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            onClick={handleGenerateReport}
+            disabled={generatingReport}
+            style={{
+              background: generatingReport ? '#6d28d9' : '#7c3aed',
+              color: '#fff', border: 'none',
+              borderRadius: '8px', padding: '0.75rem 2rem',
+              fontSize: '1rem', fontWeight: 600,
+              cursor: generatingReport ? 'not-allowed' : 'pointer',
+              opacity: generatingReport ? 0.8 : 1,
+            }}
+          >
+            {generatingReport ? '⏳ Gerando relatório...' : '📋 Gerar Relatório IA'}
+          </button>
+          <button
+            onClick={() => navigate('/simulate')}
+            style={{
+              background: '#1e2235', color: '#94a3b8', border: '1px solid #2d3148',
+              borderRadius: '8px', padding: '0.75rem 2rem',
+              fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Nova simulação →
+          </button>
+          {reportError && (
+            <span style={{ color: '#f87171', fontSize: '0.875rem' }}>
+              ⚠ {reportError}
+            </span>
+          )}
+        </div>
       )}
     </div>
   )

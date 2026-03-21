@@ -93,6 +93,8 @@ async def health():
 
 from routers.simulation import router as simulation_router
 from routers.seeds import router as seeds_router
+from routers.reports import router as reports_router
 
 app.include_router(simulation_router)
 app.include_router(seeds_router)
+app.include_router(reports_router)
