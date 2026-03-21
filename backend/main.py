@@ -52,10 +52,8 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5173,http://localhost:5174",
-).split(",")
+_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174")
+ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -86,10 +84,14 @@ async def security_headers(request: Request, call_next):
 
 @app.get("/health", tags=["infra"])
 async def health():
+    from database import DB_PATH
     return {
         "status": "ok",
         "app": "DesinfoLab",
         "version": "0.3.0",
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "db_path": str(DB_PATH),
+        "db_exists": DB_PATH.exists(),
     }
 
 
