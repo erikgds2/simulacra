@@ -107,8 +107,8 @@ python check_env.py   # Valida configuração
 uvicorn main:app --reload
 ```
 
-API disponível em: http://localhost:8000
-Swagger UI em: http://localhost:8000/docs
+API disponível em: http://localhost:8000 (local) ou https://desinfolab.onrender.com (produção)
+Swagger UI em: http://localhost:8000/docs (local) ou https://desinfolab.onrender.com/docs (produção)
 
 ### Frontend
 ```bash
