@@ -27,12 +27,12 @@ RSS_SOURCES = [
     {
         "id": "lupa",
         "name": "Agência Lupa",
-        "url": "https://piaui.folha.uol.com.br/lupa/feed/",
+        "url": "https://lupa.uol.com.br/feed/",
     },
     {
         "id": "aosfatos",
         "name": "Aos Fatos",
-        "url": "https://www.aosfatos.org/feed/",
+        "url": "https://aosfatos.org/noticias/feed/",
     },
 ]
 
