@@ -14,7 +14,10 @@ from slowapi.util import get_remote_address
 router = APIRouter(prefix="/seeds", tags=["seeds"])
 limiter = Limiter(key_func=get_remote_address)
 
-SEEDS_DIR = Path(__file__).parent.parent / "data" / "seeds"
+import os
+
+_DATA_DIR = Path(os.getenv("DATA_DIR", str(Path(__file__).parent.parent / "data")))
+SEEDS_DIR = _DATA_DIR / "seeds"
 NORMALIZED_DIR = SEEDS_DIR / "normalized"
 INDEX_FILE = SEEDS_DIR / "index.json"
 
