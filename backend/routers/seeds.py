@@ -29,42 +29,50 @@ RSS_SOURCES = [
         "id": "lupa",
         "name": "Agência Lupa",
         "url": "https://lupa.uol.com.br/feed/",
+        "region": "brasil",
     },
     {
         "id": "aosfatos",
         "name": "Aos Fatos",
         "url": "https://aosfatos.org/noticias/feed/",
+        "region": "brasil",
     },
     {
         "id": "g1fatooufake",
         "name": "G1 Fato ou Fake",
         "url": "https://g1.globo.com/rss/g1/fato-ou-fake/",
+        "region": "brasil",
     },
     {
         "id": "boatos",
         "name": "Boatos.org",
         "url": "https://www.boatos.org/feed",
+        "region": "brasil",
     },
     {
         "id": "efarsas",
         "name": "E-Farsas",
         "url": "https://www.e-farsas.com/feed",
+        "region": "brasil",
     },
     # Internacional
     {
         "id": "fullfact",
         "name": "Full Fact (UK)",
         "url": "https://fullfact.org/feed/",
+        "region": "internacional",
     },
     {
         "id": "snopes",
         "name": "Snopes",
         "url": "https://www.snopes.com/feed/",
+        "region": "internacional",
     },
     {
         "id": "factcheckorg",
         "name": "FactCheck.org",
         "url": "https://www.factcheck.org/feed/",
+        "region": "internacional",
     },
 ]
 
@@ -85,7 +93,7 @@ def _save_index(index: dict) -> None:
     )
 
 
-def _normalize_entry(entry: dict, source_id: str, source_name: str) -> Optional[dict]:
+def _normalize_entry(entry: dict, source_id: str, source_name: str, region: str = "brasil") -> Optional[dict]:
     url = entry.get("link", "").strip()
     title = bleach.clean(entry.get("title", ""), tags=[], strip=True).strip()
     summary = bleach.clean(entry.get("summary", ""), tags=[], strip=True).strip()
@@ -104,7 +112,7 @@ def _normalize_entry(entry: dict, source_id: str, source_name: str) -> Optional[
         "content": content,
         "url": url,
         "tags": ["desinformação", "fact-check"],
-        "region_br": "nacional",
+        "region_br": region,
     }
 
 
@@ -120,7 +128,7 @@ async def _fetch_rss(source: dict) -> list[dict]:
             feed = feedparser.parse(resp.text)
             for entry in feed.entries[:10]:
                 normalized = _normalize_entry(
-                    dict(entry), source["id"], source["name"]
+                    dict(entry), source["id"], source["name"], source.get("region", "brasil")
                 )
                 if normalized:
                     results.append(normalized)
@@ -190,3 +198,41 @@ async def get_seed(seed_id: str):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Seed não encontrada")
     return json.loads(file_path.read_text(encoding="utf-8"))
+
+
+@router.post("/translate", tags=["seeds"])
+async def translate_seed(body: dict):
+    """Traduz título e conteúdo de uma seed para PT-BR usando Claude API."""
+    import os
+    import anthropic
+    title = body.get("title", "")
+    content = body.get("content", "")
+    if not title and not content:
+        raise HTTPException(status_code=400, detail="title ou content obrigatório")
+
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    prompt = f"""Traduza o seguinte conteúdo jornalístico para português brasileiro de forma natural e fluida. Mantenha nomes próprios, siglas e termos técnicos. Retorne APENAS a tradução, sem comentários.
+
+TÍTULO: {title}
+
+CONTEÚDO: {content}
+
+Responda no formato:
+TÍTULO: [tradução do título]
+CONTEÚDO: [tradução do conteúdo]"""
+
+    message = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    text = message.content[0].text
+    translated_title = title
+    translated_content = content
+    for line in text.split("\n"):
+        if line.startswith("TÍTULO:"):
+            translated_title = line.replace("TÍTULO:", "").strip()
+        elif line.startswith("CONTEÚDO:"):
+            translated_content = line.replace("CONTEÚDO:", "").strip()
+
+    return {"title": translated_title, "content": translated_content}

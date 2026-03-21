@@ -16,7 +16,7 @@ const COLORS = { S: '#60a5fa', E: '#fbbf24', I: '#f87171', R: '#34d399' }
 function MetricCard({ label, value, color }) {
   return (
     <div style={{
-      background: '#1a1d27',
+      background: '#081222',
       border: `1px solid ${color}44`,
       borderRadius: '10px',
       padding: '1rem 1.5rem',
@@ -24,7 +24,7 @@ function MetricCard({ label, value, color }) {
       minWidth: '120px',
     }}>
       <div style={{ color, fontSize: '1.75rem', fontWeight: 700 }}>{value}</div>
-      <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.25rem' }}>{label}</div>
+      <div style={{ color: '#94A3B8', fontSize: '0.8rem', marginTop: '0.25rem' }}>{label}</div>
     </div>
   )
 }
@@ -75,10 +75,10 @@ export default function SimulationView() {
   const options = {
     responsive: true,
     animation: { duration: 0 },
-    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    plugins: { legend: { labels: { color: '#94A3B8' } } },
     scales: {
-      x: { ticks: { color: '#94a3b8' }, grid: { color: '#2d3148' } },
-      y: { ticks: { color: '#94a3b8' }, grid: { color: '#2d3148' } },
+      x: { ticks: { color: '#94A3B8' }, grid: { color: '#112236' } },
+      y: { ticks: { color: '#94A3B8' }, grid: { color: '#112236' } },
     },
   }
 
@@ -107,7 +107,7 @@ export default function SimulationView() {
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ color: '#818cf8', margin: 0 }}>Simulação ao vivo</h2>
+        <h2 style={{ color: '#06B6D4', margin: 0 }}>Simulação ao vivo</h2>
         {connected && <span style={{ color: '#34d399', fontSize: '0.8rem' }}>● transmitindo</span>}
         {done && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>● concluída</span>}
       </div>
@@ -120,20 +120,20 @@ export default function SimulationView() {
       </div>
 
       <div style={{
-        background: '#1a1d27',
-        border: '1px solid #2d3148',
+        background: '#081222',
+        border: '1px solid #112236',
         borderRadius: '12px',
         padding: '1.5rem',
         marginBottom: '1.5rem',
       }}>
         {ticks.length > 0
           ? <Line data={chartData} options={options} />
-          : <p style={{ color: '#94a3b8', textAlign: 'center', padding: '3rem 0' }}>Aguardando dados...</p>
+          : <p style={{ color: '#94A3B8', textAlign: 'center', padding: '3rem 0' }}>Aguardando dados...</p>
         }
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+        <p style={{ color: '#94A3B8', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
           Grafo de propagação — estado atual da rede ({ticks.length > 0 ? `tick ${ticks[ticks.length-1].tick}` : 'aguardando'})
         </p>
         <PropagationGraph ticks={ticks} numAgents={200} />
@@ -145,8 +145,8 @@ export default function SimulationView() {
             onClick={handleGenerateReport}
             disabled={generatingReport}
             style={{
-              background: generatingReport ? '#6d28d9' : '#7c3aed',
-              color: '#fff', border: 'none',
+              background: generatingReport ? '#112236' : '#06B6D4',
+              color: generatingReport ? '#475569' : '#000', border: 'none',
               borderRadius: '8px', padding: '0.75rem 2rem',
               fontSize: '1rem', fontWeight: 600,
               cursor: generatingReport ? 'not-allowed' : 'pointer',
@@ -158,7 +158,7 @@ export default function SimulationView() {
           <button
             onClick={() => navigate('/simulate')}
             style={{
-              background: '#1e2235', color: '#94a3b8', border: '1px solid #2d3148',
+              background: '#081222', color: '#94A3B8', border: '1px solid #112236',
               borderRadius: '8px', padding: '0.75rem 2rem',
               fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
             }}

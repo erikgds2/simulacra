@@ -5,17 +5,17 @@ import { apiFetch } from '../api'
 
 const mdComponents = {
   h1: ({ children }) => (
-    <h1 style={{ color: '#818cf8', fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', borderBottom: '1px solid #2d3148', paddingBottom: '0.5rem' }}>
+    <h1 style={{ color: '#06B6D4', fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', borderBottom: '1px solid #112236', paddingBottom: '0.5rem' }}>
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 style={{ color: '#a5b4fc', fontSize: '1.2rem', fontWeight: 600, marginTop: '1.75rem', marginBottom: '0.75rem' }}>
+    <h2 style={{ color: '#22D3EE', fontSize: '1.2rem', fontWeight: 600, marginTop: '1.75rem', marginBottom: '0.75rem' }}>
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 style={{ color: '#c4b5fd', fontSize: '1rem', fontWeight: 600, marginTop: '1.25rem', marginBottom: '0.5rem' }}>
+    <h3 style={{ color: '#67E8F9', fontSize: '1rem', fontWeight: 600, marginTop: '1.25rem', marginBottom: '0.5rem' }}>
       {children}
     </h3>
   ),
@@ -35,16 +35,16 @@ const mdComponents = {
     <strong style={{ color: '#f1f5f9', fontWeight: 600 }}>{children}</strong>
   ),
   em: ({ children }) => (
-    <em style={{ color: '#94a3b8' }}>{children}</em>
+    <em style={{ color: '#94A3B8' }}>{children}</em>
   ),
   hr: () => (
-    <hr style={{ border: 'none', borderTop: '1px solid #2d3148', margin: '1.5rem 0' }} />
+    <hr style={{ border: 'none', borderTop: '1px solid #112236', margin: '1.5rem 0' }} />
   ),
   blockquote: ({ children }) => (
     <blockquote style={{
-      borderLeft: '3px solid #4f46e5',
+      borderLeft: '3px solid #06B6D4',
       paddingLeft: '1rem',
-      color: '#94a3b8',
+      color: '#94A3B8',
       margin: '1rem 0',
       fontStyle: 'italic',
     }}>
@@ -59,17 +59,17 @@ const mdComponents = {
     </div>
   ),
   th: ({ children }) => (
-    <th style={{ background: '#2d3148', color: '#a5b4fc', padding: '0.5rem 0.75rem', textAlign: 'left', border: '1px solid #3d4168' }}>
+    <th style={{ background: '#0D1B2E', color: '#06B6D4', padding: '0.5rem 0.75rem', textAlign: 'left', border: '1px solid #1E3A5F' }}>
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td style={{ color: '#cbd5e1', padding: '0.45rem 0.75rem', border: '1px solid #2d3148' }}>
+    <td style={{ color: '#cbd5e1', padding: '0.45rem 0.75rem', border: '1px solid #112236' }}>
       {children}
     </td>
   ),
   code: ({ children }) => (
-    <code style={{ background: '#2d3148', color: '#f472b6', borderRadius: '4px', padding: '0.15rem 0.4rem', fontSize: '0.85em' }}>
+    <code style={{ background: '#0D1B2E', color: '#f472b6', borderRadius: '4px', padding: '0.15rem 0.4rem', fontSize: '0.85em' }}>
       {children}
     </code>
   ),
@@ -114,11 +114,11 @@ export default function Report() {
   return (
     <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ color: '#818cf8', margin: 0, fontSize: '1.5rem' }}>Relatório de Análise</h2>
+        <h2 style={{ color: '#06B6D4', margin: 0, fontSize: '1.5rem' }}>Relatório de Análise</h2>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button
             onClick={() => navigate(-1)}
-            style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #2d3148', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
+            style={{ background: 'transparent', color: '#94A3B8', border: '1px solid #112236', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
           >
             ← Voltar
           </button>
@@ -126,13 +126,13 @@ export default function Report() {
             <>
               <button
                 onClick={handleCopy}
-                style={{ background: copied ? '#16a34a' : '#2d3148', color: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
+                style={{ background: copied ? '#16a34a' : '#0D1B2E', color: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
               >
                 {copied ? '✓ Copiado' : 'Copiar Markdown'}
               </button>
               <button
                 onClick={handlePrint}
-                style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
+                style={{ background: '#06B6D4', color: '#000', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
               >
                 Exportar PDF
               </button>
@@ -142,7 +142,7 @@ export default function Report() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94A3B8' }}>
           <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
           <p>Carregando relatório...</p>
         </div>
@@ -157,7 +157,7 @@ export default function Report() {
       {report && (
         <>
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <span style={{ background: '#2d3148', color: '#a5b4fc', borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
+            <span style={{ background: '#0D1B2E', color: '#22D3EE', borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
               Modelo: {report.model}
             </span>
             {report.cached && (
@@ -171,8 +171,8 @@ export default function Report() {
           </div>
 
           <div style={{
-            background: '#1a1d27',
-            border: '1px solid #2d3148',
+            background: '#081222',
+            border: '1px solid #112236',
             borderRadius: '12px',
             padding: '2rem',
           }}>
