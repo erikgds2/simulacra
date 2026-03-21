@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SeedSelector from '../components/SeedSelector'
+import { apiFetch } from '../api'
 
 const interventions = [
   { value: '', label: 'Nenhuma' },
@@ -47,8 +48,8 @@ export default function Simulate() {
         num_agents: numAgents,
         intervention: intervention || null,
       }
-      const res = await fetch('/api/simulation/start', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const res = await apiFetch('/simulation/start', {
+        method: 'POST',
         body: JSON.stringify(body),
       })
       const data = await res.json()

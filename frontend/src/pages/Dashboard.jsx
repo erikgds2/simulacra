@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiFetch } from '../api'
 
 const infoCards = [
   { title: 'Como funciona', text: 'Simula propagacao de desinformacao em redes sociais usando SEIR em grafos Barabasi-Albert.' },
@@ -20,7 +21,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/simulation/list?limit=10')
+    apiFetch('/simulation/list?limit=10')
       .then(r => r.json())
       .then(d => setSimulations(d.simulations || []))
       .catch(() => {})
