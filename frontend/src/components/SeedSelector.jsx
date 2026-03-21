@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiFetch } from '../api'
 
 export default function SeedSelector({ onSelect }) {
   const [seeds, setSeeds] = useState([])
@@ -10,7 +11,7 @@ export default function SeedSelector({ onSelect }) {
   async function loadSeeds() {
     setLoading(true)
     try {
-      const res = await fetch('/api/seeds/db/list?limit=30')
+      const res = await apiFetch('/seeds/db/list?limit=30')
       const data = await res.json()
       setSeeds(data.seeds || [])
     } catch {
@@ -24,7 +25,7 @@ export default function SeedSelector({ onSelect }) {
     setCollecting(true)
     setError('')
     try {
-      await fetch('/api/seeds/collect', { method: 'POST' })
+      await apiFetch('/seeds/collect', { method: 'POST' })
       await loadSeeds()
     } catch {
       setError('Erro ao coletar seeds')
