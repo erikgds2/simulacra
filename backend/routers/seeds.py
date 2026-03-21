@@ -111,8 +111,11 @@ def _normalize_entry(entry: dict, source_id: str, source_name: str) -> Optional[
 async def _fetch_rss(source: dict) -> list[dict]:
     results = []
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(source["url"])
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            resp = await client.get(
+                source["url"],
+                headers={"User-Agent": "Mozilla/5.0 (compatible; DesinfoLab/1.0; +https://github.com/erikgds2/desinfolab)"},
+            )
             resp.raise_for_status()
             feed = feedparser.parse(resp.text)
             for entry in feed.entries[:10]:
