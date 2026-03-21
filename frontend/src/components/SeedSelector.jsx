@@ -15,7 +15,7 @@ export default function SeedSelector({ onSelect }) {
       const data = await res.json()
       setSeeds(data.seeds || [])
     } catch {
-      setError('Erro ao carregar seeds')
+      setError('Erro ao carregar seeds. O backend pode estar acordando — tente novamente em 30s.')
     } finally {
       setLoading(false)
     }
@@ -25,10 +25,11 @@ export default function SeedSelector({ onSelect }) {
     setCollecting(true)
     setError('')
     try {
-      await apiFetch('/seeds/collect', { method: 'POST' })
+      const res = await apiFetch('/seeds/collect', { method: 'POST' })
+      if (!res.ok) throw new Error(`Erro ${res.status}`)
       await loadSeeds()
-    } catch {
-      setError('Erro ao coletar seeds')
+    } catch (e) {
+      setError(`Erro ao coletar seeds: ${e.message}. O backend pode estar acordando — aguarde 30s e tente novamente.`)
     } finally {
       setCollecting(false)
     }
