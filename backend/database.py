@@ -1,9 +1,11 @@
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "desinfolab.db"
+_DATA_DIR = Path(os.getenv("DATA_DIR", str(Path(__file__).parent)))
+DB_PATH = _DATA_DIR / "desinfolab.db"
 
 
 def get_connection() -> sqlite3.Connection:
