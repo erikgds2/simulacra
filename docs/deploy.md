@@ -26,6 +26,8 @@
 | `ANTHROPIC_API_KEY` | sua chave sk-ant-... |
 | `ENVIRONMENT` | production |
 | `ALLOWED_ORIGINS` | https://erikgds2.github.io |
+
+> **Importante**: após o deploy no GitHub Pages, atualize `ALLOWED_ORIGINS` no Render para `https://erikgds2.github.io` para que o CORS funcione em produção.
 | `DATA_DIR` | /data |
 
 6. Em **Disks**, adicione:
