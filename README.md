@@ -1,25 +1,67 @@
 # DesinfoLab
 
 [![CI](https://github.com/erikgds2/desinfolab/actions/workflows/ci.yml/badge.svg)](https://github.com/erikgds2/desinfolab/actions/workflows/ci.yml)
+[![Deploy](https://github.com/erikgds2/desinfolab/actions/workflows/deploy-frontend.yml/badge.svg)](https://github.com/erikgds2/desinfolab/actions/workflows/deploy-frontend.yml)
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
-[![Claude](https://img.shields.io/badge/Claude-Haiku-orange)](https://www.anthropic.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-green)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Custo](https://img.shields.io/badge/Custo-Zero-brightgreen)](https://render.com)
 
-**Motor de simulacao de propagacao de desinformacao no Brasil**, baseado em swarm intelligence e modelo epidemiologico SEIR.
+> **Simulador de propagação de desinformação no Brasil** usando modelo SEIR e grafos Barabási-Albert.
+
+**Demo ao vivo:** https://erikgds2.github.io/desinfolab/
+**API pública:** https://desinfolab-api.onrender.com/docs
 
 ---
 
-## O que e o DesinfoLab?
+## O que é
 
-O DesinfoLab simula como uma noticia falsa se espalha em uma rede social sintetica brasileira:
+DesinfoLab é um motor de simulação open source que modela como fake news se propagam em redes sociais brasileiras. Você alimenta o sistema com o texto de uma notícia — real ou hipotética — e em segundos vê:
 
-1. **Coleta** checagens de fatos reais via RSS (Agencia Lupa, Aos Fatos)
-2. **Constroi** uma rede de agentes com comportamento inspirado em redes sociais brasileiras (Twitter, WhatsApp, Facebook)
-3. **Simula** a propagacao usando o modelo SEIR em grafo Barabasi-Albert
-4. **Aplica** intervencoes configuradas (fact-check, rotulagem, remocao) e mede o impacto
-5. **Gera** relatorio de analise com recomendacoes via Claude API
+- A curva SEIR animada em tempo real (Suscetíveis, Expostos, Infectados, Recuperados)
+- O grafo de propagação com nós coloridos por estado
+- O impacto de 4 intervenções diferentes (fact-check, remoção, contra-narrativa, aviso)
+- Um relatório analítico em português gerado por IA
+
+---
+
+## Casos de uso
+
+**1. Simulador eleitoral**
+Cole uma fake news sobre urnas ou candidatos e veja como ela se espalharia com e sem intervenção do TSE. Visual, polêmico, compartilhável.
+
+**2. Triagem de viralização para jornalistas**
+Agências de fact-checking como Lupa e AosFatos podem priorizar quais checagens fazer primeiro — baseado no alcance projetado, não no feeling.
+
+**3. War game de crise para fintechs**
+Simule como uma fake news sobre o Pix ou sobre falência de banco se espalha. Qual resposta institucional teria mais impacto antes do pânico se instalar?
+
+**4. Comparador de intervenções**
+Rode a mesma notícia com as 4 intervenções disponíveis e veja qual reduz mais o alcance. Entrega número concreto para embasar decisão editorial ou de comunicação.
+
+**5. Laboratório educacional**
+Professores configuram parâmetros ao vivo enquanto alunos observam a propagação. Mais didático que qualquer slides sobre fake news.
+
+---
+
+## Como funciona
+
+```
+Texto seed → Rede Barabási-Albert → Simulação SEIR → Relatório IA
+```
+
+O motor usa o modelo epidemiológico **SEIR** em grafos **Barabási-Albert** — a mesma topologia de redes sociais reais, onde poucos nós têm muitas conexões (influenciadores) e a maioria tem poucas.
+
+**Beta por intervenção:**
+
+| Intervenção | Redução na transmissão |
+|---|---|
+| Nenhuma | 0% |
+| Aviso de rótulo | 25% |
+| Contra-narrativa | 40% |
+| Fact-check | 50% |
+| Remoção | 80% |
 
 ---
 
@@ -27,60 +69,206 @@ O DesinfoLab simula como uma noticia falsa se espalha em uma rede social sinteti
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | FastAPI + Python 3.11 |
-| Simulacao | NetworkX + NumPy (SEIR / Barabasi-Albert) |
-| IA | Anthropic Claude claude-haiku-4-5 |
-| Frontend | React 18 + Vite + Tailwind CSS |
-| Visualizacao | Chart.js + D3 |
-| Estado | Zustand |
-| Streaming | Server-Sent Events (SSE) |
+| Backend | Python 3.11 + FastAPI |
+| Simulação | NetworkX + NumPy |
+| IA | Claude API (claude-haiku-4-5) |
+| Banco | SQLite |
+| Frontend | React 18 + Vite |
+| Visualização | D3.js + Chart.js |
+| Deploy backend | Render (free tier) |
+| Deploy frontend | GitHub Pages |
+| CI | GitHub Actions |
+| **Custo mensal** | **R$ 0** |
 
 ---
 
-## Custo zero
+## Rodar localmente
 
-Roda com o credito gratuito inicial da Anthropic API.
-Sem banco de dados externo, sem servicos pagos obrigatorios.
-
----
-
-## Como rodar
+### Pré-requisitos
+- Python 3.11+
+- Node.js 20+
+- Chave da Claude API: https://console.anthropic.com/settings/keys
 
 ### Backend
-
 ```bash
 cd backend
 python -m venv .venv
-.venv\Scripts\Activate.ps1      # Windows
-# source .venv/bin/activate     # Linux/Mac
+
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
 pip install -r requirements.txt
 cp .env.example .env
-# edite .env e adicione sua ANTHROPIC_API_KEY
+# Edite .env e preencha ANTHROPIC_API_KEY
+
+python check_env.py   # Valida configuração
 uvicorn main:app --reload
 ```
 
-- API: http://localhost:8000
-- Documentacao Swagger: http://localhost:8000/docs
+API disponível em: http://localhost:8000
+Swagger UI em: http://localhost:8000/docs
 
 ### Frontend
-
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-- Interface: http://localhost:5173
+Frontend em: http://localhost:5173
+
+### Testes
+```bash
+cd backend
+python -m pytest tests/ -v
+```
 
 ---
 
-## Seguranca
+## Estrutura do projeto
 
-Leia [SECURITY.md](SECURITY.md) antes de contribuir.
-Nunca commite arquivos `.env` ou credenciais.
+```
+desinfolab/
+├── backend/
+│   ├── agents/
+│   │   ├── data_collector.py    # Coleta RSS Lupa + AosFatos
+│   │   ├── simulation_engine.py # Motor SEIR Barabási-Albert
+│   │   └── report_agent.py      # Relatório em PT via Claude API
+│   ├── routers/
+│   │   ├── simulation.py        # POST /simulation/start, SSE stream
+│   │   ├── seeds.py             # GET/POST /seeds
+│   │   └── reports.py           # POST /report/generate
+│   ├── tests/                   # 64+ testes automatizados
+│   ├── database.py              # SQLite — simulações, ticks, seeds, relatórios
+│   ├── main.py                  # FastAPI app com segurança
+│   └── check_env.py             # Validação de ambiente
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── PropagationGraph.jsx  # D3 force-directed
+│   │   │   └── SeedSelector.jsx      # Seletor de seeds coletadas
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx         # Histórico de simulações
+│   │   │   ├── Simulate.jsx          # Formulário de configuração
+│   │   │   ├── SimulationView.jsx    # Gráfico SEIR ao vivo + D3
+│   │   │   └── Report.jsx            # Relatório markdown
+│   │   └── api.js                    # Centraliza chamadas à API
+│   └── vite.config.js
+├── .github/workflows/
+│   ├── ci.yml                   # Testes a cada push
+│   └── deploy-frontend.yml      # Deploy automático no GitHub Pages
+├── docs/
+│   ├── deploy.md                # Guia de deploy no Render
+│   ├── deploy-frontend.md       # Guia de deploy no GitHub Pages
+│   └── API.md                   # Referência completa da API
+├── render.yaml                  # Configuração de deploy no Render
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+└── README.md
+```
 
 ---
 
-## Licenca
+## API
 
-MIT
+Documentação completa: https://desinfolab-api.onrender.com/docs
+
+### Endpoints principais
+
+```
+POST /simulation/start          Inicia simulação
+GET  /simulation/{id}/stream    SSE — streaming de ticks em tempo real
+GET  /simulation/{id}/result    Resultado final
+GET  /simulation/list           Histórico de simulações
+POST /seeds/collect             Coleta seeds RSS da Lupa e AosFatos
+GET  /seeds/db/list             Lista seeds coletadas
+POST /report/generate           Gera relatório IA em português
+GET  /report/{id}               Busca relatório por ID
+GET  /health                    Status da API
+```
+
+### Exemplo rápido
+
+```bash
+# Iniciar simulação
+curl -X POST https://desinfolab-api.onrender.com/simulation/start \
+  -H "Content-Type: application/json" \
+  -d '{"seed_text": "Governo anuncia bloqueio do Pix a partir de segunda-feira", "num_agents": 200}'
+
+# Streaming de ticks (SSE)
+curl https://desinfolab-api.onrender.com/simulation/{id}/stream
+```
+
+Ver [docs/API.md](docs/API.md) para referência completa.
+
+---
+
+## Segurança
+
+- Rate limiting por IP em todos os endpoints
+- Sanitização XSS com bleach em todo input
+- Validação Pydantic com field_validator
+- Security headers em todas as respostas
+- CORS restrito à origem configurada
+- Nenhuma credencial no código — tudo via variáveis de ambiente
+
+Ver [SECURITY.md](SECURITY.md) para política completa.
+
+---
+
+## Contribuindo
+
+Ver [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Áreas onde contribuições são bem-vindas:
+- Novas fontes de seeds (G1, UOL Confere, BBC Brasil)
+- Modelos de agentes com perfis regionais brasileiros
+- Visualizações alternativas do grafo
+- Testes de carga e benchmarks
+
+---
+
+## Roadmap
+
+- [x] Motor SEIR com Barabási-Albert
+- [x] SSE streaming em tempo real
+- [x] Grafo D3 force-directed
+- [x] Report Agent com Claude API
+- [x] Coleta RSS Lupa e AosFatos
+- [x] SQLite persistente
+- [x] Deploy zero-cost (Render + GitHub Pages)
+- [x] 64+ testes automatizados com CI
+- [ ] Perfis de agentes regionais brasileiros (SP, NE, SUL)
+- [ ] Simulação paralela com múltiplas seeds
+- [ ] Export de dados em CSV/JSON
+- [ ] Dashboard de comparação de intervenções
+- [ ] Integração GDELT para seeds internacionais
+
+---
+
+## Citação
+
+Se usar este projeto em pesquisa acadêmica:
+
+```
+@software{desinfolab2026,
+  author = {erikgds2},
+  title = {DesinfoLab: Simulador de Propagação de Desinformação no Brasil},
+  url = {https://github.com/erikgds2/desinfolab},
+  year = {2026}
+}
+```
+
+---
+
+## Licença
+
+MIT — veja [LICENSE](LICENSE).
+
+---
+
+*Inspirado no [MiroFish](https://github.com/666ghj/MiroFish) de Guo Hangjiang.*
