@@ -29,9 +29,11 @@ def check_env() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    check_env()
+    env = os.getenv("ENVIRONMENT", "development")
+    if env != "test":
+        check_env()
     init_db()
-    logger.info("DesinfoLab iniciado — variáveis de ambiente OK, banco inicializado")
+    logger.info("DesinfoLab iniciado — banco inicializado")
     yield
     logger.info("DesinfoLab encerrado")
 
