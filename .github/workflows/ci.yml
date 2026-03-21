@@ -80,3 +80,35 @@ jobs:
         run: |
           test -d dist && echo "✅ Build gerado com sucesso"
           ls -la dist/
+
+  validate-render-config:
+    name: Validate Render Config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check render.yaml exists
+        run: test -f render.yaml && echo "render.yaml encontrado"
+
+      - name: Check Procfile exists
+        run: test -f backend/Procfile && echo "Procfile encontrado"
+
+      - name: Check runtime.txt exists
+        run: test -f backend/runtime.txt && echo "runtime.txt encontrado"
+
+      - name: Validate render.yaml syntax
+        run: |
+          python3 -c "
+          import yaml, sys
+          with open('render.yaml') as f:
+              config = yaml.safe_load(f)
+          services = config.get('services', [])
+          assert len(services) > 0, 'Nenhum servico em render.yaml'
+          svc = services[0]
+          assert svc.get('name'), 'name ausente'
+          assert svc.get('buildCommand'), 'buildCommand ausente'
+          assert svc.get('startCommand'), 'startCommand ausente'
+          print('render.yaml valido')
+          "
