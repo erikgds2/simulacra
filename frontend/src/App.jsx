@@ -9,7 +9,7 @@ import NotFound from './pages/NotFound.jsx'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.PROD ? '/desinfolab' : '/'}>
       <div style={{ background: '#0f1117', minHeight: '100vh' }}>
         <Navbar />
         <Routes>
