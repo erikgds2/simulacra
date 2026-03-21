@@ -24,6 +24,7 @@ INDEX_FILE = SEEDS_DIR / "index.json"
 NORMALIZED_DIR.mkdir(parents=True, exist_ok=True)
 
 RSS_SOURCES = [
+    # Brasil
     {
         "id": "lupa",
         "name": "Agência Lupa",
@@ -33,6 +34,37 @@ RSS_SOURCES = [
         "id": "aosfatos",
         "name": "Aos Fatos",
         "url": "https://aosfatos.org/noticias/feed/",
+    },
+    {
+        "id": "g1fatooufake",
+        "name": "G1 Fato ou Fake",
+        "url": "https://g1.globo.com/rss/g1/fato-ou-fake/",
+    },
+    {
+        "id": "boatos",
+        "name": "Boatos.org",
+        "url": "https://www.boatos.org/feed",
+    },
+    {
+        "id": "efarsas",
+        "name": "E-Farsas",
+        "url": "https://www.e-farsas.com/feed",
+    },
+    # Internacional
+    {
+        "id": "fullfact",
+        "name": "Full Fact (UK)",
+        "url": "https://fullfact.org/feed/",
+    },
+    {
+        "id": "snopes",
+        "name": "Snopes",
+        "url": "https://www.snopes.com/feed/",
+    },
+    {
+        "id": "factcheckorg",
+        "name": "FactCheck.org",
+        "url": "https://www.factcheck.org/feed/",
     },
 ]
 
