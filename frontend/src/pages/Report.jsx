@@ -3,100 +3,270 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Markdown from 'react-markdown'
 import { apiFetch } from '../api'
 
+/* ─── Print / PDF styles ─────────────────────────────────────────── */
+const PRINT_STYLE = `
+@media print {
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .report-shell { padding: 0 !important; max-width: 100% !important; }
+  .report-card {
+    background: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .report-header {
+    background: #fff !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    margin-bottom: 24px !important;
+    page-break-inside: avoid !important;
+  }
+  .metric-card {
+    border: 1px solid #d1d5db !important;
+    background: #f9fafb !important;
+  }
+  .risk-block {
+    border: 1px solid #d1d5db !important;
+    background: #f9fafb !important;
+  }
+  h1, h2, h3 { page-break-after: avoid !important; }
+  p, li { page-break-inside: avoid !important; }
+  table { page-break-inside: avoid !important; }
+  @page {
+    margin: 2cm 2.5cm;
+    size: A4 portrait;
+  }
+}
+`
+
+/* ─── Markdown components — paleta profissional ──────────────────── */
 const mdComponents = {
   h1: ({ children }) => (
-    <h1 style={{ color: '#06B6D4', fontSize: '1.75rem', fontWeight: 700, marginBottom: '1rem', borderBottom: '1px solid #112236', paddingBottom: '0.5rem' }}>
+    <h1 style={{
+      color: '#0f172a',
+      fontSize: '1.5rem',
+      fontWeight: 700,
+      marginBottom: '0.75rem',
+      marginTop: '0.5rem',
+      borderBottom: '2px solid #e2e8f0',
+      paddingBottom: '0.5rem',
+      letterSpacing: '-0.01em',
+    }}>
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 style={{ color: '#22D3EE', fontSize: '1.2rem', fontWeight: 600, marginTop: '1.75rem', marginBottom: '0.75rem' }}>
+    <h2 style={{
+      color: '#1e3a5f',
+      fontSize: '1.1rem',
+      fontWeight: 700,
+      marginTop: '2rem',
+      marginBottom: '0.6rem',
+      paddingLeft: '0.75rem',
+      borderLeft: '3px solid #2563eb',
+    }}>
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 style={{ color: '#67E8F9', fontSize: '1rem', fontWeight: 600, marginTop: '1.25rem', marginBottom: '0.5rem' }}>
+    <h3 style={{
+      color: '#334155',
+      fontSize: '0.95rem',
+      fontWeight: 600,
+      marginTop: '1.25rem',
+      marginBottom: '0.4rem',
+    }}>
       {children}
     </h3>
   ),
   p: ({ children }) => (
-    <p style={{ color: '#cbd5e1', lineHeight: 1.75, marginBottom: '0.75rem' }}>{children}</p>
+    <p style={{
+      color: '#374151',
+      lineHeight: 1.8,
+      marginBottom: '0.85rem',
+      fontSize: '0.925rem',
+    }}>
+      {children}
+    </p>
   ),
   ul: ({ children }) => (
-    <ul style={{ color: '#cbd5e1', paddingLeft: '1.5rem', marginBottom: '0.75rem' }}>{children}</ul>
+    <ul style={{ color: '#374151', paddingLeft: '1.5rem', marginBottom: '0.85rem' }}>
+      {children}
+    </ul>
   ),
   ol: ({ children }) => (
-    <ol style={{ color: '#cbd5e1', paddingLeft: '1.5rem', marginBottom: '0.75rem' }}>{children}</ol>
+    <ol style={{ color: '#374151', paddingLeft: '1.5rem', marginBottom: '0.85rem' }}>
+      {children}
+    </ol>
   ),
   li: ({ children }) => (
-    <li style={{ marginBottom: '0.35rem', lineHeight: 1.65 }}>{children}</li>
+    <li style={{ marginBottom: '0.4rem', lineHeight: 1.7, fontSize: '0.925rem' }}>
+      {children}
+    </li>
   ),
   strong: ({ children }) => (
-    <strong style={{ color: '#f1f5f9', fontWeight: 600 }}>{children}</strong>
+    <strong style={{ color: '#0f172a', fontWeight: 700 }}>{children}</strong>
   ),
   em: ({ children }) => (
-    <em style={{ color: '#94A3B8' }}>{children}</em>
+    <em style={{ color: '#4b5563' }}>{children}</em>
   ),
   hr: () => (
-    <hr style={{ border: 'none', borderTop: '1px solid #112236', margin: '1.5rem 0' }} />
+    <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '1.75rem 0' }} />
   ),
   blockquote: ({ children }) => (
     <blockquote style={{
-      borderLeft: '3px solid #06B6D4',
+      borderLeft: '4px solid #2563eb',
       paddingLeft: '1rem',
-      color: '#94A3B8',
-      margin: '1rem 0',
+      color: '#4b5563',
+      margin: '1.25rem 0',
       fontStyle: 'italic',
+      background: '#f0f7ff',
+      borderRadius: '0 6px 6px 0',
+      padding: '0.75rem 1rem',
     }}>
       {children}
     </blockquote>
   ),
   table: ({ children }) => (
-    <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+    <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '0.875rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        borderRadius: '6px',
+        overflow: 'hidden',
+      }}>
         {children}
       </table>
     </div>
   ),
   th: ({ children }) => (
-    <th style={{ background: '#0D1B2E', color: '#06B6D4', padding: '0.5rem 0.75rem', textAlign: 'left', border: '1px solid #1E3A5F' }}>
+    <th style={{
+      background: '#1e3a5f',
+      color: '#ffffff',
+      padding: '0.625rem 0.875rem',
+      textAlign: 'left',
+      fontWeight: 600,
+      fontSize: '0.8rem',
+      letterSpacing: '0.03em',
+      textTransform: 'uppercase',
+    }}>
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td style={{ color: '#cbd5e1', padding: '0.45rem 0.75rem', border: '1px solid #112236' }}>
+    <td style={{
+      color: '#374151',
+      padding: '0.5rem 0.875rem',
+      borderBottom: '1px solid #e2e8f0',
+      background: '#fff',
+    }}>
       {children}
     </td>
   ),
   code: ({ children }) => (
-    <code style={{ background: '#0D1B2E', color: '#f472b6', borderRadius: '4px', padding: '0.15rem 0.4rem', fontSize: '0.85em' }}>
+    <code style={{
+      background: '#f1f5f9',
+      color: '#be185d',
+      borderRadius: '4px',
+      padding: '0.15rem 0.4rem',
+      fontSize: '0.85em',
+      fontFamily: 'JetBrains Mono, monospace',
+      border: '1px solid #e2e8f0',
+    }}>
       {children}
     </code>
   ),
 }
 
+/* ─── Risk badge ─────────────────────────────────────────────────── */
+const RISK_PRINT_COLORS = {
+  'Baixo':    { bg: '#f0fdf4', border: '#86efac', text: '#166534' },
+  'Moderado': { bg: '#fffbeb', border: '#fcd34d', text: '#92400e' },
+  'Alto':     { bg: '#fff7ed', border: '#fdba74', text: '#9a3412' },
+  'Crítico':  { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b' },
+}
+
+function RiskBadge({ risk }) {
+  if (!risk) return null
+  const c = RISK_PRINT_COLORS[risk.label] || RISK_PRINT_COLORS['Moderado']
+  return (
+    <div className="risk-block" style={{
+      background: c.bg,
+      border: `1px solid ${c.border}`,
+      borderRadius: '10px',
+      padding: '1rem 1.5rem',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1.25rem',
+      marginBottom: '1.5rem',
+    }}>
+      <div style={{ textAlign: 'center', minWidth: 64 }}>
+        <div style={{ fontSize: '2.25rem', fontWeight: 800, color: c.text, lineHeight: 1 }}>
+          {risk.score}
+        </div>
+        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: c.text, letterSpacing: '0.05em', marginTop: 2 }}>
+          {risk.label.toUpperCase()}
+        </div>
+      </div>
+      <div style={{ borderLeft: `2px solid ${c.border}`, paddingLeft: '1.25rem' }}>
+        <div style={{ fontWeight: 700, color: c.text, fontSize: '0.9rem' }}>
+          Score de risco — {risk.label}
+        </div>
+        <div style={{ color: '#4b5563', fontSize: '0.825rem', marginTop: '0.25rem' }}>
+          {risk.description}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Metric cards ───────────────────────────────────────────────── */
+function MetricCard({ label, value, sub }) {
+  return (
+    <div className="metric-card" style={{
+      background: '#f8fafc',
+      border: '1px solid #e2e8f0',
+      borderRadius: '8px',
+      padding: '0.875rem 1.1rem',
+      textAlign: 'center',
+      flex: 1,
+      minWidth: 110,
+    }}>
+      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{value}</div>
+      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>{label}</div>
+      {sub && <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 1 }}>{sub}</div>}
+    </div>
+  )
+}
+
+/* ─── Main component ─────────────────────────────────────────────── */
 export default function Report() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [report, setReport] = useState(null)
+  const [report, setReport]   = useState(null)
+  const [sim, setSim]         = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [copied, setCopied] = useState(false)
+  const [error, setError]     = useState(null)
+  const [copied, setCopied]   = useState(false)
 
   useEffect(() => {
     apiFetch(`/report/${id}`)
-      .then((res) => {
+      .then(res => {
         if (!res.ok) throw new Error(`Relatório não encontrado (${res.status})`)
         return res.json()
       })
-      .then((data) => {
+      .then(data => {
         setReport(data)
-        setLoading(false)
+        // fetch simulation result for metrics + risk
+        return apiFetch(`/simulation/${data.simulation_id}/result`)
       })
-      .catch((err) => {
-        setError(err.message)
-        setLoading(false)
-      })
+      .then(res => res.ok ? res.json() : null)
+      .then(d => { if (d) setSim(d) })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
   }, [id])
 
   function handleCopy() {
@@ -111,14 +281,35 @@ export default function Report() {
     window.print()
   }
 
+  const intervention_labels = {
+    fact_check: 'Fact-check',
+    removal: 'Remoção',
+    counter_narrative: 'Contra-narrativa',
+    label_warning: 'Aviso de rótulo',
+    null: 'Sem intervenção',
+  }
+
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ color: '#06B6D4', margin: 0, fontSize: '1.5rem' }}>Relatório de Análise</h2>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+    <div className="report-shell" style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem' }}>
+      <style>{PRINT_STYLE}</style>
+
+      {/* ── Toolbar ── */}
+      <div className="no-print" style={{
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem',
+      }}>
+        <h2 style={{ color: '#e2e8f0', margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+          Relatório de análise
+        </h2>
+        <div style={{ display: 'flex', gap: '0.625rem' }}>
           <button
             onClick={() => navigate(-1)}
-            style={{ background: 'transparent', color: '#94A3B8', border: '1px solid #112236', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
+            style={{
+              background: 'transparent', color: '#94a3b8',
+              border: '1px solid #1e293b', borderRadius: '7px',
+              padding: '0.45rem 1rem', cursor: 'pointer', fontSize: '0.85rem',
+            }}
           >
             ← Voltar
           </button>
@@ -126,13 +317,23 @@ export default function Report() {
             <>
               <button
                 onClick={handleCopy}
-                style={{ background: copied ? '#16a34a' : '#0D1B2E', color: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
+                style={{
+                  background: copied ? '#166534' : '#1e293b',
+                  color: copied ? '#bbf7d0' : '#e2e8f0',
+                  border: 'none', borderRadius: '7px',
+                  padding: '0.45rem 1rem', cursor: 'pointer', fontSize: '0.85rem',
+                }}
               >
                 {copied ? '✓ Copiado' : 'Copiar Markdown'}
               </button>
               <button
                 onClick={handlePrint}
-                style={{ background: '#06B6D4', color: '#000', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem' }}
+                style={{
+                  background: '#1e3a5f', color: '#ffffff',
+                  border: 'none', borderRadius: '7px',
+                  padding: '0.45rem 1.25rem', cursor: 'pointer',
+                  fontSize: '0.85rem', fontWeight: 600,
+                }}
               >
                 Exportar PDF
               </button>
@@ -141,44 +342,135 @@ export default function Report() {
         </div>
       </div>
 
+      {/* ── Loading / Error ── */}
       {loading && (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94A3B8' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
-          <p>Carregando relatório...</p>
+        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>
+          <div style={{
+            width: 36, height: 36, border: '3px solid #1e293b',
+            borderTop: '3px solid #2563eb', borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
+          }} />
+          <p style={{ margin: 0 }}>Carregando relatório...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
 
       {error && (
-        <div style={{ background: '#3f1c1c', border: '1px solid #ef4444', borderRadius: '12px', padding: '1.5rem', color: '#fca5a5', textAlign: 'center' }}>
+        <div style={{
+          background: '#fef2f2', border: '1px solid #fca5a5',
+          borderRadius: '10px', padding: '1.5rem', color: '#991b1b', textAlign: 'center',
+        }}>
           <p style={{ margin: 0 }}>{error}</p>
         </div>
       )}
 
+      {/* ── Report content ── */}
       {report && (
-        <>
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <span style={{ background: '#0D1B2E', color: '#22D3EE', borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
-              Modelo: {report.model}
-            </span>
-            {report.cached && (
-              <span style={{ background: '#1e3a2e', color: '#34d399', borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
-                Cacheado
-              </span>
+        <div className="report-card" style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '2.25rem 2.5rem',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+        }}>
+
+          {/* Header block — context images / metadata */}
+          <div className="report-header" style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            padding: '1.25rem 1.5rem',
+            marginBottom: '1.75rem',
+          }}>
+            {/* Title row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#2563eb', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                  Simulacra · Relatório de propagação
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                  Análise de fake news — modelo SEIR
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748b' }}>
+                <div>{new Date(report.created_at).toLocaleString('pt-BR')}</div>
+                <div style={{ marginTop: 2 }}>Modelo: {report.model}</div>
+                {report.cached && <div style={{ color: '#16a34a', marginTop: 2 }}>✓ Cache</div>}
+              </div>
+            </div>
+
+            {/* Simulation metrics */}
+            {sim && (
+              <>
+                {/* Seed text */}
+                <div style={{
+                  background: '#fff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '7px',
+                  padding: '0.625rem 0.875rem',
+                  fontSize: '0.8rem',
+                  color: '#374151',
+                  marginBottom: '1rem',
+                  lineHeight: 1.6,
+                }}>
+                  <span style={{ fontWeight: 700, color: '#64748b', marginRight: 6 }}>Seed:</span>
+                  {sim.seed_text?.slice(0, 180)}{sim.seed_text?.length > 180 ? '...' : ''}
+                </div>
+
+                {/* Metric cards */}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <MetricCard
+                    label="Agentes simulados"
+                    value={sim.num_agents}
+                  />
+                  <MetricCard
+                    label="Pico de infectados"
+                    value={sim.peak_infected}
+                    sub={`${((sim.peak_infected / sim.num_agents) * 100).toFixed(1)}% da rede`}
+                  />
+                  <MetricCard
+                    label="Alcance total"
+                    value={`${((sim.total_reach || 0) * 100).toFixed(1)}%`}
+                    sub="agentes expostos"
+                  />
+                  <MetricCard
+                    label="Tempo ao pico"
+                    value={`${sim.time_to_peak} ticks`}
+                    sub="velocidade de propagação"
+                  />
+                  <MetricCard
+                    label="Intervenção"
+                    value={intervention_labels[sim.intervention] || 'Nenhuma'}
+                  />
+                </div>
+
+                {/* Risk badge */}
+                {sim.risk && <RiskBadge risk={sim.risk} />}
+              </>
             )}
-            <span style={{ background: '#1e2d40', color: '#60a5fa', borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>
-              {new Date(report.created_at).toLocaleString('pt-BR')}
-            </span>
           </div>
 
+          {/* Markdown body */}
+          <Markdown components={mdComponents}>{report.markdown}</Markdown>
+
+          {/* Footer */}
           <div style={{
-            background: '#081222',
-            border: '1px solid #112236',
-            borderRadius: '12px',
-            padding: '2rem',
+            marginTop: '2.5rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
           }}>
-            <Markdown components={mdComponents}>{report.markdown}</Markdown>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+              Gerado por Simulacra · github.com/erikgds2/simulacra
+            </span>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+              Motor SEIR + Barabási-Albert · IA: Claude API
+            </span>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
