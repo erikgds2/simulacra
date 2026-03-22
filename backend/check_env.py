@@ -36,7 +36,7 @@ CHECKS = [
 errors = []
 warnings = []
 
-print("\nDesinfoLab -- verificacao de ambiente\n")
+print("\nSimulacra -- verificacao de ambiente\n")
 
 for check in CHECKS:
     var = check["var"]

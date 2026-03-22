@@ -69,10 +69,10 @@ export default function Dashboard() {
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '3rem 2rem' }}>
       <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#818cf8', marginBottom: '0.5rem' }}>
-        DesinfoLab
+        Simulacra
       </h1>
       <p style={{ color: '#94a3b8', marginBottom: '2.5rem', fontSize: '1.05rem' }}>
-        Simulador de propagação de desinformação no Brasil
+        Motor de simulação de comportamento coletivo para o Brasil
       </p>
 
       {loading && apiOnline === null && <ColdStartBanner />}

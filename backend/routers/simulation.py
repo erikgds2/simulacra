@@ -137,10 +137,22 @@ async def stream_simulation(request: Request, sim_id: str):
 async def get_result(sim_id: str):
     sim = get_simulation(sim_id)
     if not sim:
-        raise HTTPException(status_code=404, detail="Simulacao nao encontrada")
+        raise HTTPException(status_code=404, detail="Simulação não encontrada")
     if sim["status"] != "finished":
-        raise HTTPException(status_code=400, detail="Simulacao ainda nao concluida")
-    return sim
+        raise HTTPException(status_code=400, detail="Simulação ainda não concluída")
+
+    from agents.risk_scorer import calculate_risk_score, risk_label_description
+    risk = calculate_risk_score(
+        num_agents=sim["num_agents"],
+        peak_infected=sim["peak_infected"] or 0,
+        time_to_peak=sim["time_to_peak"] or 1,
+        total_reach=sim["total_reach"] or 0.0,
+        total_ticks=sim["total_ticks"] or 1,
+        intervention=sim["intervention"],
+    )
+    risk["description"] = risk_label_description(risk["label"])
+
+    return {**sim, "risk": risk}
 
 
 @router.get("/{sim_id}/graph")
@@ -155,4 +167,99 @@ async def get_graph(sim_id: str):
         "simulation_id": sim_id,
         "final_tick": ticks[-1],
         "ticks": ticks,
+    }
+
+
+class CompareRequest(BaseModel):
+    seed_text: str
+    num_agents: int = 200
+    random_seed: int = 42
+
+    @field_validator("seed_text")
+    @classmethod
+    def sanitize_seed_text(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 10:
+            raise ValueError("seed_text deve ter pelo menos 10 caracteres")
+        if len(v) > 5000:
+            raise ValueError("seed_text não pode ultrapassar 5000 caracteres")
+        return bleach.clean(v, tags=[], strip=True)
+
+    @field_validator("num_agents")
+    @classmethod
+    def validate_num_agents(cls, v: int) -> int:
+        if v < 10:
+            raise ValueError("num_agents mínimo é 10")
+        if v > 500:
+            raise ValueError("num_agents máximo é 500 no modo comparação")
+        return v
+
+
+@router.post("/compare")
+@limiter.limit("5/minute")
+async def compare_interventions(request: Request, req: CompareRequest):
+    """
+    Roda a mesma simulação com todas as intervenções em paralelo
+    e retorna métricas comparativas + scores de risco.
+    Ideal para dashboards de tomada de decisão.
+    """
+    from agents.risk_scorer import calculate_risk_score, risk_label_description
+
+    interventions = [None, "fact_check", "removal", "counter_narrative", "label_warning"]
+    labels = {
+        None: "Sem intervenção",
+        "fact_check": "Fact-check",
+        "removal": "Remoção",
+        "counter_narrative": "Contra-narrativa",
+        "label_warning": "Aviso de rótulo",
+    }
+
+    results = []
+
+    for intervention in interventions:
+        engine = SimulationEngine(
+            num_agents=req.num_agents,
+            intervention=intervention,
+            random_seed=req.random_seed,
+        )
+        ticks = list(engine.run_ticks())
+        if not ticks:
+            continue
+
+        peak = max(ticks, key=lambda t: t["I"])
+        first = ticks[0]
+        total = first["S"] + first["E"] + first["I"] + first["R"]
+        total_reach = round((total - ticks[-1]["S"]) / total, 3)
+
+        risk = calculate_risk_score(
+            num_agents=req.num_agents,
+            peak_infected=peak["I"],
+            time_to_peak=peak["tick"],
+            total_reach=total_reach,
+            total_ticks=len(ticks),
+            intervention=intervention,
+        )
+        risk["description"] = risk_label_description(risk["label"])
+
+        results.append({
+            "intervention": intervention,
+            "label": labels[intervention],
+            "peak_infected": peak["I"],
+            "peak_pct": round(peak["I"] / req.num_agents * 100, 1),
+            "time_to_peak": peak["tick"],
+            "total_reach_pct": round(total_reach * 100, 1),
+            "total_ticks": len(ticks),
+            "risk": risk,
+            "ticks": ticks,
+        })
+
+    results.sort(key=lambda r: r["risk"]["score"])
+
+    return {
+        "seed_text": req.seed_text[:100] + ("..." if len(req.seed_text) > 100 else ""),
+        "num_agents": req.num_agents,
+        "random_seed": req.random_seed,
+        "best_intervention": results[0]["label"] if results else None,
+        "worst_intervention": results[-1]["label"] if results else None,
+        "results": results,
     }

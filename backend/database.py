@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 _DATA_DIR = Path(os.getenv("DATA_DIR", str(Path(__file__).parent)))
-DB_PATH = _DATA_DIR / "desinfolab.db"
+DB_PATH = _DATA_DIR / "simulacra.db"
 
 
 def get_connection() -> sqlite3.Connection:

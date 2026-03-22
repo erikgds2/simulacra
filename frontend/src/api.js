@@ -1,5 +1,5 @@
 const BASE = import.meta.env.PROD
-  ? (import.meta.env.VITE_API_URL || 'https://desinfolab-api.onrender.com')
+  ? (import.meta.env.VITE_API_URL || 'https://simulacra-api.onrender.com')
   : '/api'
 
 export async function apiFetch(path, options = {}) {
