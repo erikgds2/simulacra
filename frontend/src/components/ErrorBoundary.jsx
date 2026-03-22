@@ -33,6 +33,7 @@ export default class ErrorBoundary extends Component {
             {this.state.error?.message || 'Erro inesperado'}
           </p>
           <button
+            type="button"
             onClick={() => {
               this.setState({ hasError: false, error: null })
               window.location.href = '/'
