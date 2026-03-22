@@ -1,10 +1,10 @@
-# Arquitetura DesinfoLab
+# Arquitetura Simulacra
 
 ## Visao Geral
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     DESINFOLAB                          │
+│                     SIMULACRA                           │
 │                                                         │
 │  ┌──────────┐    ┌────────────┐    ┌─────────────────┐ │
 │  │  React   │◄──►│  FastAPI   │◄──►│  Agentes Python │ │

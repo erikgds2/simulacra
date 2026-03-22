@@ -1,6 +1,6 @@
-# API Reference — DesinfoLab
+# API Reference — Simulacra
 
-Base URL produção: `https://desinfolab-api.onrender.com`
+Base URL produção: `https://simulacra-api.onrender.com`
 Base URL local: `http://localhost:8000`
 Documentação interativa: `/docs` (Swagger UI)
 
@@ -181,10 +181,10 @@ Busca relatório pelo ID do relatório.
 ```json
 {
   "status": "ok",
-  "app": "DesinfoLab",
-  "version": "0.3.0",
+  "app": "Simulacra",
+  "version": "1.0.0",
   "environment": "production",
-  "db_path": "/data/desinfolab.db",
+  "db_path": "/data/simulacra.db",
   "db_exists": true
 }
 ```

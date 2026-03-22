@@ -33,7 +33,7 @@ export default function Navbar() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '14px', fontWeight: 700, color: '#000',
             boxShadow: '0 0 12px #06B6D440',
-          }}>D</div>
+          }}>S</div>
           <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#E2E8F0', letterSpacing: '0.02em' }}>
             Simulacra
           </span>
