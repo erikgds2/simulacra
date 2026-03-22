@@ -41,6 +41,15 @@
     "intervencao_remocao": "Remoção — isola nós infectados",
     "intervencao_contra": "Contra-narrativa — reduz taxa de transmissão",
     "intervencao_aviso": "Aviso de rótulo — reduz engajamento",
+    "regiao_label": "Região",
+    "regiao_todas": "Todas as regiões",
+    "regiao_hint": "Multiplica a taxa de transmissão conforme conectividade e letramento digital regional",
+    "regiao_sp_desc": "São Paulo · +{{multiplier}}% propagação",
+    "regiao_ne_desc": "Nordeste · +{{multiplier}}% propagação",
+    "regiao_sul_desc": "Sul · -{{multiplier}}% propagação",
+    "regiao_co_desc": "Centro-Oeste · referência base",
+    "regiao_n_desc": "Norte · +{{multiplier}}% propagação",
+    "regiao_rj_desc": "Rio de Janeiro · +{{multiplier}}% propagação",
     "random_seed_label": "Seed aleatória",
     "random_seed_hint": "Mesmo valor = resultado reproduzível",
     "botao_simular": "Simular →",
@@ -112,7 +121,8 @@
     "header_label": "Simulacra · Relatório de propagação",
     "agentes_expostos": "agentes expostos",
     "da_rede": "da rede",
-    "velocidade": "velocidade de propagação"
+    "velocidade": "velocidade de propagação",
+    "regiao": "Região"
   },
   "seeds": {
     "titulo": "Seeds disponíveis",

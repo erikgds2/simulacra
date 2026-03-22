@@ -41,6 +41,15 @@
     "intervencao_remocao": "Removal — isolates infected nodes",
     "intervencao_contra": "Counter-narrative — reduces transmission rate",
     "intervencao_aviso": "Label warning — reduces engagement",
+    "regiao_label": "Region",
+    "regiao_todas": "All regions",
+    "regiao_hint": "Multiplies the transmission rate based on regional connectivity and digital literacy",
+    "regiao_sp_desc": "São Paulo · +{{multiplier}}% spread",
+    "regiao_ne_desc": "Northeast · +{{multiplier}}% spread",
+    "regiao_sul_desc": "South · -{{multiplier}}% spread",
+    "regiao_co_desc": "Center-West · base reference",
+    "regiao_n_desc": "North · +{{multiplier}}% spread",
+    "regiao_rj_desc": "Rio de Janeiro · +{{multiplier}}% spread",
     "random_seed_label": "Random seed",
     "random_seed_hint": "Same value = reproducible result",
     "botao_simular": "Simulate →",
@@ -112,7 +121,8 @@
     "header_label": "Simulacra · Propagation report",
     "agentes_expostos": "agents exposed",
     "da_rede": "of the network",
-    "velocidade": "propagation speed"
+    "velocidade": "propagation speed",
+    "regiao": "Region"
   },
   "seeds": {
     "titulo": "Available seeds",

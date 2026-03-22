@@ -27,6 +27,25 @@ def _build_curve_sample(ticks: list[dict], n: int = 5) -> str:
     return f"{header}\n{rows}"
 
 
+REGION_NAMES = {
+    "SP": "São Paulo",
+    "NE": "Nordeste",
+    "SUL": "Sul",
+    "CO": "Centro-Oeste",
+    "N": "Norte",
+    "RJ": "Rio de Janeiro",
+}
+
+REGION_MULTIPLIERS = {
+    "SP": 1.20,
+    "NE": 1.35,
+    "SUL": 0.85,
+    "CO": 1.00,
+    "N": 1.10,
+    "RJ": 1.15,
+}
+
+
 def _build_prompt(sim: dict, ticks: list[dict]) -> str:
     num_agents = sim["num_agents"]
     seed_text = sim["seed_text"]
@@ -35,7 +54,12 @@ def _build_prompt(sim: dict, ticks: list[dict]) -> str:
     total_reach_pct = round((sim.get("total_reach") or 0) * 100, 1)
     total_ticks = sim.get("total_ticks") or len(ticks)
     intervention = sim.get("intervention") or "Nenhuma"
+    region_code = sim.get("region")
+    region_name = REGION_NAMES.get(region_code, "Brasil (sem região específica)") if region_code else "Brasil (sem região específica)"
+    region_multiplier = REGION_MULTIPLIERS.get(region_code, 1.0) if region_code else 1.0
     curve_table = _build_curve_sample(ticks)
+
+    region_context = f"- Região simulada: {region_name} (multiplicador de propagação: {region_multiplier:.2f}x)\n" if region_code else ""
 
     return f"""Você é um especialista sênior em desinformação e comunicação no Brasil.
 Analise os dados desta simulação SEIR de propagação de desinformação e escreva um relatório completo em português brasileiro.
@@ -45,7 +69,7 @@ Analise os dados desta simulação SEIR de propagação de desinformação e esc
 
 ## Parâmetros da Simulação
 - Total de agentes na rede: {num_agents}
-- Intervenção aplicada: {intervention}
+{region_context}- Intervenção aplicada: {intervention}
 - Duração total: {total_ticks} ticks
 
 ## Métricas de Propagação
@@ -67,7 +91,7 @@ Produza o relatório **em markdown** com exatamente estas seções:
 (Explicação técnica da curva SEIR: velocidade de contágio, pico, fase de recuperação)
 
 ## 3. Impacto Estimado no Contexto Brasileiro
-(Como esta desinformação afetaria a sociedade brasileira — plataformas, regiões, grupos vulneráveis)
+(Como esta desinformação afetaria a sociedade brasileira — especialmente na região {region_name}, considerando plataformas locais, grupos vulneráveis e características regionais)
 
 ## 4. Eficácia da Intervenção
 (Avalie a intervenção "{intervention}" — se "Nenhuma", discuta o cenário sem intervenção e seus riscos)

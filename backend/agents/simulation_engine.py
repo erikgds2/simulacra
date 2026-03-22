@@ -16,6 +16,17 @@ INTERVENTION_BETA: dict = {
     None: BETA_BASE,
 }
 
+# Multiplicadores de beta por região brasileira
+# Baseados em densidade digital, infraestrutura de fact-checking e conectividade social
+REGION_MULTIPLIERS: dict[str, float] = {
+    "SP": 1.20,   # São Paulo: alta densidade urbana e conectividade digital
+    "NE": 1.35,   # Nordeste: menor infraestrutura de verificação, alta vulnerabilidade
+    "SUL": 0.85,  # Sul: maior letramento digital e renda média
+    "CO": 1.00,   # Centro-Oeste: referência neutra
+    "N": 1.10,    # Norte: menor infraestrutura de fact-checking
+    "RJ": 1.15,   # Rio de Janeiro: alta densidade, forte polarização
+}
+
 S, E, I, R = "S", "E", "I", "R"
 
 
@@ -25,11 +36,14 @@ class SimulationEngine:
         num_agents: int = 200,
         intervention: Optional[Literal["fact_check", "removal", "counter_narrative", "label_warning"]] = None,
         random_seed: int = 42,
+        region: Optional[str] = None,
     ):
         self.num_agents = num_agents
         self.intervention = intervention
         self.random_seed = random_seed
-        self.beta = INTERVENTION_BETA.get(intervention, BETA_BASE)
+        self.region = region
+        multiplier = REGION_MULTIPLIERS.get(region, 1.0) if region else 1.0
+        self.beta = INTERVENTION_BETA.get(intervention, BETA_BASE) * multiplier
         random.seed(random_seed)
         np.random.seed(random_seed)
         self.graph = nx.barabasi_albert_graph(num_agents, 3, seed=random_seed)

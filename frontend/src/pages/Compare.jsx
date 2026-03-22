@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../api'
 import { toast } from '../components/Toast'
 import PageLoader from '../components/PageLoader'
+import RegionSelector from '../components/RegionSelector'
 
 const INTERVENTION_ICONS = {
   'Sem intervenção': '—',
@@ -157,6 +158,7 @@ export default function Compare() {
   const { t } = useTranslation()
   const [seedText, setSeedText] = useState('')
   const [numAgents, setNumAgents] = useState(150)
+  const [region, setRegion] = useState(null)
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
@@ -172,7 +174,7 @@ export default function Compare() {
     try {
       const res = await apiFetch('/simulation/compare', {
         method: 'POST',
-        body: JSON.stringify({ seed_text: seedText, num_agents: numAgents }),
+        body: JSON.stringify({ seed_text: seedText, num_agents: numAgents, region: region || null }),
       })
       if (!res.ok) {
         const d = await res.json()
@@ -223,6 +225,8 @@ export default function Compare() {
         {t('compare.agentes_hint')}
       </p>
 
+      <RegionSelector value={region} onChange={setRegion} />
+
       {error && <p style={{ color: '#f87171', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</p>}
 
       <button
@@ -260,6 +264,14 @@ export default function Compare() {
                 {results.seed_text}
               </p>
             </div>
+            {results.region && (
+              <div>
+                <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>{t('simulate.regiao_label')}</p>
+                <p style={{ color: '#fbbf24', fontSize: '0.95rem', fontWeight: 700, margin: '0.25rem 0 0' }}>
+                  {results.region}
+                </p>
+              </div>
+            )}
             <div>
               <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>{t('compare.melhor')}</p>
               <p style={{ color: '#34d399', fontSize: '0.95rem', fontWeight: 700, margin: '0.25rem 0 0' }}>
