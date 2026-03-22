@@ -16,6 +16,28 @@
 
 ---
 
+## Resultado real
+
+**Caso:** Fake news eleitoral — boato sobre fraude em urnas eletrônicas (seed sintética representativa de padrão verificado pela Agência Lupa e Aos Fatos, 2022)
+
+> *"URGENTE: TSE confirma vulnerabilidade crítica nas urnas eletrônicas. Eleição pode ser suspensa após descoberta de adulteração nos sistemas..."*
+
+Simulação com **200 agentes**, semente aleatória fixa 42, 5 cenários de intervenção:
+
+| Intervenção | Score | Label | Pico infectados | Alcance total |
+|---|---|---|---|---|
+| Remoção | **7** | Baixo | 22% | 75,5% |
+| Fact-check | 21 | Baixo | 47% | 99% |
+| Contra-narrativa | 28 | Moderado | 48,5% | 99% |
+| Aviso de rótulo | 36 | Moderado | 52,5% | 100% |
+| **Sem intervenção** | **74** | **Alto** | **54,5%** | **100%** |
+
+**Remoção reduz o risco em 91% vs. sem intervenção** (score 74 → 7).
+
+Para reproduzir: `cd backend && python cases/run_demo.py`
+
+---
+
 ## O problema
 
 Boatos eleitorais, rumores sobre saúde pública, notícias falsas sobre segurança — uma vez que saem do WhatsApp, você tem minutos para responder. Sem dados sobre como a narrativa vai se espalhar, decisões são tomadas no feeling.
