@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export default function ColdStartBanner() {
+  const { t } = useTranslation()
   const [show, setShow] = useState(false)
   const [seconds, setSeconds] = useState(0)
 
@@ -36,11 +38,11 @@ export default function ColdStartBanner() {
       }} />
       <div>
         <p style={{ color: '#fde68a', fontSize: '0.875rem', margin: 0, fontWeight: 500 }}>
-          Aguardando o servidor acordar...
+          {t('cold_start.titulo')}
         </p>
         <p style={{ color: '#92400e', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>
-          O backend hiberna após 15 min sem uso (free tier). Primeira requisição leva 30-60s.
-          {seconds > 0 ? ` Aguardando há ${seconds}s...` : ''}
+          {t('cold_start.subtitulo')}
+          {seconds > 0 ? ` ${t('cold_start.aguardando', { seconds })}` : ''}
         </p>
       </div>
       <style>{`

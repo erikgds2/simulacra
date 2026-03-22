@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../api'
 import { toast } from '../components/Toast'
 import PageLoader from '../components/PageLoader'
@@ -29,6 +30,7 @@ function RiskBadge({ score, label, color }) {
 }
 
 function ResultCard({ result, isBest, isWorst }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -46,7 +48,7 @@ function ResultCard({ result, isBest, isWorst }) {
           borderRadius: '6px', padding: '2px 10px',
           color: '#34d399', fontSize: '0.72rem', fontWeight: 600,
         }}>
-          MELHOR INTERVENÇÃO
+          {t('compare.badge_melhor')}
         </div>
       )}
       {isWorst && (
@@ -56,11 +58,11 @@ function ResultCard({ result, isBest, isWorst }) {
           borderRadius: '6px', padding: '2px 10px',
           color: '#f87171', fontSize: '0.72rem', fontWeight: 600,
         }}>
-          PIOR CENÁRIO
+          {t('compare.badge_pior')}
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#64748b', fontSize: '1rem' }}>
@@ -81,11 +83,11 @@ function ResultCard({ result, isBest, isWorst }) {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
         {[
-          { label: 'Pico infectados', value: `${result.peak_pct}%`, color: '#f87171' },
-          { label: 'Alcance total', value: `${result.total_reach_pct}%`, color: '#fbbf24' },
-          { label: 'Tempo ao pico', value: `${result.time_to_peak} ticks`, color: '#60a5fa' },
+          { label: t('compare.pico_infectados'), value: `${result.peak_pct}%`, color: '#f87171' },
+          { label: t('compare.alcance_total'), value: `${result.total_reach_pct}%`, color: '#fbbf24' },
+          { label: t('compare.tempo_pico'), value: `${result.time_to_peak} ${t('compare.ticks')}`, color: '#60a5fa' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             background: '#0f1117',
@@ -100,14 +102,16 @@ function ResultCard({ result, isBest, isWorst }) {
       </div>
 
       <button
+        type="button"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
         style={{
           background: 'transparent', border: 'none',
           color: '#475569', fontSize: '0.78rem',
           cursor: 'pointer', padding: 0,
         }}
       >
-        {expanded ? '▲ Ocultar curva' : '▼ Ver curva SEIR'}
+        {expanded ? t('compare.ocultar_curva') : t('compare.ver_curva')}
       </button>
 
       {expanded && result.ticks.length > 0 && (
@@ -150,6 +154,7 @@ const inputStyle = {
 }
 
 export default function Compare() {
+  const { t } = useTranslation()
   const [seedText, setSeedText] = useState('')
   const [numAgents, setNumAgents] = useState(150)
   const [loading, setLoading] = useState(false)
@@ -158,7 +163,7 @@ export default function Compare() {
 
   async function handleCompare() {
     if (seedText.trim().length < 10) {
-      setError('Digite pelo menos 10 caracteres.')
+      setError(t('compare.minimo_chars'))
       return
     }
     setLoading(true)
@@ -175,7 +180,7 @@ export default function Compare() {
       }
       const data = await res.json()
       setResults(data)
-      toast(`Comparação concluída. Melhor intervenção: ${data.best_intervention}`, 'success')
+      toast(t('compare.toast_ok', { intervention: data.best_intervention }), 'success')
     } catch (e) {
       setError(e.message)
       toast(e.message, 'error')
@@ -185,36 +190,43 @@ export default function Compare() {
   }
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 2rem' }}>
-      <h2 style={{ color: '#818cf8', marginBottom: '0.5rem' }}>Comparar intervenções</h2>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)' }}>
+      <h2 style={{ color: '#818cf8', marginBottom: '0.5rem' }}>{t('compare.titulo')}</h2>
       <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '2rem' }}>
-        Roda a mesma simulação com todas as intervenções e mostra qual reduz mais o risco.
+        {t('compare.subtitulo')}
       </p>
 
-      <label style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Texto seed</label>
+      <label htmlFor="compare-seed" style={{ color: '#94a3b8', fontSize: '0.875rem' }}>{t('compare.seed_label')}</label>
       <textarea
+        id="compare-seed"
         rows={4}
         value={seedText}
         onChange={e => setSeedText(e.target.value)}
-        placeholder="Ex: Governo anuncia bloqueio do Pix a partir de segunda-feira..."
+        placeholder={t('compare.seed_placeholder')}
         style={{ ...inputStyle, marginTop: '0.5rem', marginBottom: '1.5rem', resize: 'vertical' }}
       />
 
-      <label style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
-        Agentes: <strong style={{ color: '#c7d2fe' }}>{numAgents}</strong>
+      <label htmlFor="compare-agents" style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
+        {t('compare.agentes_label')}: <strong style={{ color: '#c7d2fe' }}>{numAgents}</strong>
       </label>
       <input
-        type="range" min={50} max={300} step={10} value={numAgents}
+        id="compare-agents"
+        type="range"
+        min={50}
+        max={300}
+        step={10}
+        value={numAgents}
         onChange={e => setNumAgents(Number(e.target.value))}
         style={{ width: '100%', marginTop: '0.5rem', marginBottom: '0.5rem', accentColor: '#4f46e5' }}
       />
       <p style={{ color: '#475569', fontSize: '0.75rem', marginBottom: '1.5rem' }}>
-        Máximo 300 agentes no modo comparação (5 simulações paralelas)
+        {t('compare.agentes_hint')}
       </p>
 
       {error && <p style={{ color: '#f87171', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</p>}
 
       <button
+        type="button"
         onClick={handleCompare}
         disabled={loading}
         style={{
@@ -225,10 +237,10 @@ export default function Compare() {
           width: '100%', marginBottom: '2rem',
         }}
       >
-        {loading ? 'Rodando 5 simulações...' : 'Comparar todas as intervenções →'}
+        {loading ? t('compare.botao_comparando') : t('compare.botao_comparar')}
       </button>
 
-      {loading && <PageLoader message="Rodando 5 simulações em paralelo..." />}
+      {loading && <PageLoader message={t('compare.botao_comparando')} />}
 
       {results && (
         <div>
@@ -243,19 +255,19 @@ export default function Compare() {
             flexWrap: 'wrap',
           }}>
             <div>
-              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Texto simulado</p>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>{t('compare.texto_simulado')}</p>
               <p style={{ color: '#c7d2fe', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
                 {results.seed_text}
               </p>
             </div>
             <div>
-              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Melhor intervenção</p>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>{t('compare.melhor')}</p>
               <p style={{ color: '#34d399', fontSize: '0.95rem', fontWeight: 700, margin: '0.25rem 0 0' }}>
                 {results.best_intervention}
               </p>
             </div>
             <div>
-              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Pior cenário</p>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>{t('compare.pior')}</p>
               <p style={{ color: '#f87171', fontSize: '0.95rem', fontWeight: 700, margin: '0.25rem 0 0' }}>
                 {results.worst_intervention}
               </p>

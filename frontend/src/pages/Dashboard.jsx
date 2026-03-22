@@ -1,35 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../api'
 import { SkeletonList } from '../components/Skeleton'
 import ColdStartBanner from '../components/ColdStartBanner'
 import { toast } from '../components/Toast'
 
-const infoCards = [
-  {
-    title: 'Como funciona',
-    text: 'Simula propagação de desinformação em redes sociais usando SEIR em grafos Barabási-Albert.',
-  },
-  {
-    title: 'Fontes de dados',
-    text: 'Seeds coletadas da Agência Lupa e Aos Fatos — bases de verificação de fatos do Brasil.',
-  },
-  {
-    title: 'Intervenções',
-    text: 'Teste 4 estratégias: fact-check, remoção, contra-narrativa e aviso de rótulo.',
-  },
-]
-
 const STATUS_COLORS = {
   ready: '#fbbf24',
   finished: '#34d399',
   error: '#f87171',
-}
-
-const STATUS_LABELS = {
-  ready: 'em andamento',
-  finished: 'concluída',
-  error: 'erro',
 }
 
 function formatDate(iso) {
@@ -42,9 +22,22 @@ function formatDate(iso) {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [simulations, setSimulations] = useState([])
   const [loading, setLoading] = useState(true)
   const [apiOnline, setApiOnline] = useState(null)
+
+  const infoCards = [
+    { title: t('dashboard.card_como_funciona_titulo'), text: t('dashboard.card_como_funciona_texto') },
+    { title: t('dashboard.card_fontes_titulo'), text: t('dashboard.card_fontes_texto') },
+    { title: t('dashboard.card_intervencoes_titulo'), text: t('dashboard.card_intervencoes_texto') },
+  ]
+
+  const STATUS_LABELS = {
+    ready: t('dashboard.status_andamento'),
+    finished: t('dashboard.status_concluida'),
+    error: t('dashboard.status_erro'),
+  }
 
   useEffect(() => {
     async function load() {
@@ -58,7 +51,7 @@ export default function Dashboard() {
         }
       } catch {
         setApiOnline(false)
-        toast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error')
+        toast(t('dashboard.erro_conexao'), 'error')
       } finally {
         setLoading(false)
       }
@@ -67,17 +60,17 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '3rem 2rem' }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#818cf8', marginBottom: '0.5rem' }}>
-        Simulacra
+    <div style={{ maxWidth: '960px', margin: '0 auto', padding: 'clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)' }}>
+      <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700, color: '#818cf8', marginBottom: '0.5rem' }}>
+        {t('dashboard.titulo')}
       </h1>
       <p style={{ color: '#94a3b8', marginBottom: '2.5rem', fontSize: '1.05rem' }}>
-        Motor de simulação de comportamento coletivo para o Brasil
+        {t('dashboard.subtitulo')}
       </p>
 
       {loading && apiOnline === null && <ColdStartBanner />}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
         {infoCards.map(({ title, text }) => (
           <div key={title} style={{
             background: '#1a1d27',
@@ -92,6 +85,7 @@ export default function Dashboard() {
       </div>
 
       <button
+        type="button"
         onClick={() => navigate('/simulate')}
         style={{
           background: '#4f46e5', color: '#fff', border: 'none',
@@ -100,18 +94,18 @@ export default function Dashboard() {
           marginBottom: '3rem',
         }}
       >
-        Iniciar nova simulação →
+        {t('dashboard.iniciar')}
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <h2 style={{ color: '#c7d2fe', fontSize: '1.1rem', margin: 0 }}>
-          Simulações recentes
+          {t('dashboard.recentes')}
         </h2>
         {apiOnline === false && (
-          <span style={{ color: '#f87171', fontSize: '0.78rem' }}>● servidor offline</span>
+          <span style={{ color: '#f87171', fontSize: '0.78rem' }}>{t('dashboard.servidor_offline')}</span>
         )}
         {apiOnline === true && (
-          <span style={{ color: '#34d399', fontSize: '0.78rem' }}>● servidor online</span>
+          <span style={{ color: '#34d399', fontSize: '0.78rem' }}>{t('dashboard.servidor_online')}</span>
         )}
       </div>
 
@@ -123,10 +117,10 @@ export default function Dashboard() {
           borderRadius: '10px', padding: '2rem', textAlign: 'center',
         }}>
           <p style={{ color: '#64748b', margin: 0 }}>
-            Nenhuma simulação ainda.
+            {t('dashboard.nenhuma')}
           </p>
           <p style={{ color: '#475569', fontSize: '0.8rem', margin: '0.5rem 0 0' }}>
-            Clique em "Iniciar nova simulação" para começar.
+            {t('dashboard.nenhuma_sub')}
           </p>
         </div>
       ) : (
@@ -134,7 +128,10 @@ export default function Dashboard() {
           {simulations.map(sim => (
             <div
               key={sim.id}
+              role="button"
+              tabIndex={0}
               onClick={() => navigate(`/simulation/${sim.id}`)}
+              onKeyDown={e => e.key === 'Enter' && navigate(`/simulation/${sim.id}`)}
               style={{
                 background: '#1a1d27', border: '1px solid #2d3148',
                 borderRadius: '10px', padding: '1rem 1.25rem',
@@ -168,12 +165,12 @@ export default function Dashboard() {
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 {sim.peak_infected != null && (
                   <p style={{ color: '#f87171', fontSize: '0.875rem', margin: 0, fontWeight: 600 }}>
-                    Pico: {sim.peak_infected}
+                    {t('dashboard.pico')}: {sim.peak_infected}
                   </p>
                 )}
                 {sim.total_reach != null && (
                   <p style={{ color: '#94a3b8', fontSize: '0.75rem', margin: '0.2rem 0 0' }}>
-                    Alcance: {(sim.total_reach * 100).toFixed(1)}%
+                    {t('dashboard.alcance')}: {(sim.total_reach * 100).toFixed(1)}%
                   </p>
                 )}
               </div>

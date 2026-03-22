@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import { apiFetch } from '../api'
 
@@ -187,9 +188,14 @@ const RISK_PRINT_COLORS = {
   'Moderado': { bg: '#fffbeb', border: '#fcd34d', text: '#92400e' },
   'Alto':     { bg: '#fff7ed', border: '#fdba74', text: '#9a3412' },
   'Crítico':  { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b' },
+  'Low':      { bg: '#f0fdf4', border: '#86efac', text: '#166534' },
+  'Moderate': { bg: '#fffbeb', border: '#fcd34d', text: '#92400e' },
+  'High':     { bg: '#fff7ed', border: '#fdba74', text: '#9a3412' },
+  'Critical': { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b' },
 }
 
 function RiskBadge({ risk }) {
+  const { t } = useTranslation()
   if (!risk) return null
   const c = RISK_PRINT_COLORS[risk.label] || RISK_PRINT_COLORS['Moderado']
   return (
@@ -202,6 +208,7 @@ function RiskBadge({ risk }) {
       alignItems: 'center',
       gap: '1.25rem',
       marginBottom: '1.5rem',
+      flexWrap: 'wrap',
     }}>
       <div style={{ textAlign: 'center', minWidth: 64 }}>
         <div style={{ fontSize: '2.25rem', fontWeight: 800, color: c.text, lineHeight: 1 }}>
@@ -213,7 +220,7 @@ function RiskBadge({ risk }) {
       </div>
       <div style={{ borderLeft: `2px solid ${c.border}`, paddingLeft: '1.25rem' }}>
         <div style={{ fontWeight: 700, color: c.text, fontSize: '0.9rem' }}>
-          Score de risco — {risk.label}
+          {t('report.score_risco')} — {risk.label}
         </div>
         <div style={{ color: '#4b5563', fontSize: '0.825rem', marginTop: '0.25rem' }}>
           {risk.description}
@@ -246,6 +253,7 @@ function MetricCard({ label, value, sub }) {
 export default function Report() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [report, setReport]   = useState(null)
   const [sim, setSim]         = useState(null)
   const [loading, setLoading] = useState(true)
@@ -260,7 +268,6 @@ export default function Report() {
       })
       .then(data => {
         setReport(data)
-        // fetch simulation result for metrics + risk
         return apiFetch(`/simulation/${data.simulation_id}/result`)
       })
       .then(res => res.ok ? res.json() : null)
@@ -286,11 +293,11 @@ export default function Report() {
     removal: 'Remoção',
     counter_narrative: 'Contra-narrativa',
     label_warning: 'Aviso de rótulo',
-    null: 'Sem intervenção',
+    null: t('report.nenhuma_intervencao'),
   }
 
   return (
-    <div className="report-shell" style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem' }}>
+    <div className="report-shell" style={{ maxWidth: '860px', margin: '0 auto', padding: 'clamp(1rem, 3vw, 2rem)' }}>
       <style>{PRINT_STYLE}</style>
 
       {/* ── Toolbar ── */}
@@ -300,10 +307,11 @@ export default function Report() {
         marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem',
       }}>
         <h2 style={{ color: '#e2e8f0', margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-          Relatório de análise
+          {t('report.titulo')}
         </h2>
-        <div style={{ display: 'flex', gap: '0.625rem' }}>
+        <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
           <button
+            type="button"
             onClick={() => navigate(-1)}
             style={{
               background: 'transparent', color: '#94a3b8',
@@ -311,11 +319,12 @@ export default function Report() {
               padding: '0.45rem 1rem', cursor: 'pointer', fontSize: '0.85rem',
             }}
           >
-            ← Voltar
+            {t('report.voltar')}
           </button>
           {report && (
             <>
               <button
+                type="button"
                 onClick={handleCopy}
                 style={{
                   background: copied ? '#166534' : '#1e293b',
@@ -324,9 +333,10 @@ export default function Report() {
                   padding: '0.45rem 1rem', cursor: 'pointer', fontSize: '0.85rem',
                 }}
               >
-                {copied ? '✓ Copiado' : 'Copiar Markdown'}
+                {copied ? t('report.copiado') : t('report.copiar')}
               </button>
               <button
+                type="button"
                 onClick={handlePrint}
                 style={{
                   background: '#1e3a5f', color: '#ffffff',
@@ -335,7 +345,7 @@ export default function Report() {
                   fontSize: '0.85rem', fontWeight: 600,
                 }}
               >
-                Exportar PDF
+                {t('report.exportar_pdf')}
               </button>
             </>
           )}
@@ -350,7 +360,7 @@ export default function Report() {
             borderTop: '3px solid #2563eb', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
           }} />
-          <p style={{ margin: 0 }}>Carregando relatório...</p>
+          <p style={{ margin: 0 }}>{t('report.carregando')}</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
@@ -369,11 +379,11 @@ export default function Report() {
         <div className="report-card" style={{
           background: '#ffffff',
           borderRadius: '12px',
-          padding: '2.25rem 2.5rem',
+          padding: 'clamp(1.25rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2.5rem)',
           boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
         }}>
 
-          {/* Header block — context images / metadata */}
+          {/* Header block */}
           <div className="report-header" style={{
             background: '#f8fafc',
             border: '1px solid #e2e8f0',
@@ -385,16 +395,16 @@ export default function Report() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#2563eb', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Simulacra · Relatório de propagação
+                  {t('report.header_label')}
                 </div>
                 <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
-                  Análise de fake news — modelo SEIR
+                  {t('report.header_titulo')}
                 </div>
               </div>
               <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748b' }}>
                 <div>{new Date(report.created_at).toLocaleString('pt-BR')}</div>
-                <div style={{ marginTop: 2 }}>Modelo: {report.model}</div>
-                {report.cached && <div style={{ color: '#16a34a', marginTop: 2 }}>✓ Cache</div>}
+                <div style={{ marginTop: 2 }}>{t('report.modelo')}: {report.model}</div>
+                {report.cached && <div style={{ color: '#16a34a', marginTop: 2 }}>{t('report.cache')}</div>}
               </div>
             </div>
 
@@ -412,34 +422,34 @@ export default function Report() {
                   marginBottom: '1rem',
                   lineHeight: 1.6,
                 }}>
-                  <span style={{ fontWeight: 700, color: '#64748b', marginRight: 6 }}>Seed:</span>
+                  <span style={{ fontWeight: 700, color: '#64748b', marginRight: 6 }}>{t('report.seed_label')}:</span>
                   {sim.seed_text?.slice(0, 180)}{sim.seed_text?.length > 180 ? '...' : ''}
                 </div>
 
                 {/* Metric cards */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   <MetricCard
-                    label="Agentes simulados"
+                    label={t('report.agentes')}
                     value={sim.num_agents}
                   />
                   <MetricCard
-                    label="Pico de infectados"
+                    label={t('report.pico')}
                     value={sim.peak_infected}
-                    sub={`${((sim.peak_infected / sim.num_agents) * 100).toFixed(1)}% da rede`}
+                    sub={`${((sim.peak_infected / sim.num_agents) * 100).toFixed(1)}% ${t('report.da_rede')}`}
                   />
                   <MetricCard
-                    label="Alcance total"
+                    label={t('report.alcance')}
                     value={`${((sim.total_reach || 0) * 100).toFixed(1)}%`}
-                    sub="agentes expostos"
+                    sub={t('report.agentes_expostos')}
                   />
                   <MetricCard
-                    label="Tempo ao pico"
+                    label={t('report.tempo_pico')}
                     value={`${sim.time_to_peak} ticks`}
-                    sub="velocidade de propagação"
+                    sub={t('report.velocidade')}
                   />
                   <MetricCard
-                    label="Intervenção"
-                    value={intervention_labels[sim.intervention] || 'Nenhuma'}
+                    label={t('report.intervencao')}
+                    value={intervention_labels[sim.intervention] || t('report.nenhuma_intervencao')}
                   />
                 </div>
 
@@ -464,10 +474,10 @@ export default function Report() {
             gap: '0.5rem',
           }}>
             <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-              Gerado por Simulacra · github.com/erikgds2/simulacra
+              {t('report.footer_gerado')}
             </span>
             <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-              Motor SEIR + Barabási-Albert · IA: Claude API
+              {t('report.footer_motor')}
             </span>
           </div>
         </div>
