@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS, CategoryScale, LinearScale,
@@ -22,7 +23,8 @@ function MetricCard({ label, value, color }) {
       borderRadius: '10px',
       padding: '1rem 1.5rem',
       textAlign: 'center',
-      minWidth: '120px',
+      flex: '1 1 120px',
+      minWidth: '100px',
     }}>
       <div style={{ color, fontSize: '1.75rem', fontWeight: 700 }}>{value}</div>
       <div style={{ color: '#94A3B8', fontSize: '0.8rem', marginTop: '0.25rem' }}>{label}</div>
@@ -33,6 +35,7 @@ function MetricCard({ label, value, color }) {
 export default function SimulationView() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [ticks, setTicks] = useState([])
   const [done, setDone] = useState(false)
   const [connected, setConnected] = useState(false)
@@ -52,7 +55,7 @@ export default function SimulationView() {
         setDone(true)
         es.close()
         setConnected(false)
-        toast('Simulação concluída! Gere o relatório abaixo.', 'success')
+        toast(t('simulation_view.toast_concluida'), 'success')
         apiFetch(`/simulation/${id}/result`)
           .then(r => r.json())
           .then(d => setResult(d))
@@ -64,7 +67,7 @@ export default function SimulationView() {
     es.onerror = () => {
       es.close()
       setConnected(false)
-      toast('Conexão com o servidor perdida.', 'error')
+      toast(t('simulation_view.toast_conexao_perdida'), 'error')
     }
     return () => es.close()
   }, [id])
@@ -73,10 +76,10 @@ export default function SimulationView() {
   const chartData = {
     labels,
     datasets: [
-      { label: 'Suscetíveis', data: ticks.map(t => t.S), borderColor: COLORS.S, backgroundColor: COLORS.S + '22', tension: 0.3, pointRadius: 0 },
-      { label: 'Expostos',    data: ticks.map(t => t.E), borderColor: COLORS.E, backgroundColor: COLORS.E + '22', tension: 0.3, pointRadius: 0 },
-      { label: 'Infectados',  data: ticks.map(t => t.I), borderColor: COLORS.I, backgroundColor: COLORS.I + '22', tension: 0.3, pointRadius: 0 },
-      { label: 'Recuperados', data: ticks.map(t => t.R), borderColor: COLORS.R, backgroundColor: COLORS.R + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.suscetiveis'), data: ticks.map(tick => tick.S), borderColor: COLORS.S, backgroundColor: COLORS.S + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.expostos'),    data: ticks.map(tick => tick.E), borderColor: COLORS.E, backgroundColor: COLORS.E + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.infectados'),  data: ticks.map(tick => tick.I), borderColor: COLORS.I, backgroundColor: COLORS.I + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.recuperados'), data: ticks.map(tick => tick.R), borderColor: COLORS.R, backgroundColor: COLORS.R + '22', tension: 0.3, pointRadius: 0 },
     ],
   }
 
@@ -103,7 +106,7 @@ export default function SimulationView() {
         throw new Error(err.detail || `Erro ${res.status}`)
       }
       const data = await res.json()
-      toast('Relatório gerado com sucesso!', 'success')
+      toast(t('simulation_view.toast_relatorio_ok'), 'success')
       navigate(`/report/${data.id}`)
     } catch (err) {
       setReportError(err.message)
@@ -114,18 +117,18 @@ export default function SimulationView() {
   const last = ticks[ticks.length - 1] || { S: 0, E: 0, I: 0, R: 0 }
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ color: '#06B6D4', margin: 0 }}>Simulação ao vivo</h2>
-        {connected && <span style={{ color: '#34d399', fontSize: '0.8rem' }}>● transmitindo</span>}
-        {done && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>● concluída</span>}
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(1rem, 3vw, 2rem)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <h2 style={{ color: '#06B6D4', margin: 0 }}>{t('simulation_view.titulo')}</h2>
+        {connected && <span style={{ color: '#34d399', fontSize: '0.8rem' }}>{t('simulation_view.transmitindo')}</span>}
+        {done && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{t('simulation_view.concluida')}</span>}
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <MetricCard label="Suscetíveis" value={last.S} color={COLORS.S} />
-        <MetricCard label="Expostos"    value={last.E} color={COLORS.E} />
-        <MetricCard label="Infectados"  value={last.I} color={COLORS.I} />
-        <MetricCard label="Recuperados" value={last.R} color={COLORS.R} />
+        <MetricCard label={t('simulation_view.suscetiveis')} value={last.S} color={COLORS.S} />
+        <MetricCard label={t('simulation_view.expostos')}    value={last.E} color={COLORS.E} />
+        <MetricCard label={t('simulation_view.infectados')}  value={last.I} color={COLORS.I} />
+        <MetricCard label={t('simulation_view.recuperados')} value={last.R} color={COLORS.R} />
       </div>
 
       {result?.risk && (
@@ -156,7 +159,7 @@ export default function SimulationView() {
           </div>
           <div style={{ flex: 1 }}>
             <p style={{ color: '#c7d2fe', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>
-              Score de risco
+              {t('simulation_view.score_risco')}
             </p>
             <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
               {result.risk.description}
@@ -174,13 +177,13 @@ export default function SimulationView() {
       }}>
         {ticks.length > 0
           ? <Line data={chartData} options={options} />
-          : <p style={{ color: '#94A3B8', textAlign: 'center', padding: '3rem 0' }}>Aguardando dados...</p>
+          : <p style={{ color: '#94A3B8', textAlign: 'center', padding: '3rem 0' }}>{t('simulation_view.aguardando')}</p>
         }
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
         <p style={{ color: '#94A3B8', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-          Grafo de propagação — estado atual da rede ({ticks.length > 0 ? `tick ${ticks[ticks.length-1].tick}` : 'aguardando'})
+          {t('simulation_view.grafo_titulo')} ({ticks.length > 0 ? `tick ${ticks[ticks.length-1].tick}` : t('simulation_view.aguardando')})
         </p>
         <PropagationGraph ticks={ticks} numAgents={200} />
       </div>
@@ -188,6 +191,7 @@ export default function SimulationView() {
       {done && (
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button
+            type="button"
             onClick={handleGenerateReport}
             disabled={generatingReport}
             style={{
@@ -199,9 +203,10 @@ export default function SimulationView() {
               opacity: generatingReport ? 0.8 : 1,
             }}
           >
-            {generatingReport ? '⏳ Gerando relatório...' : '📋 Gerar Relatório IA'}
+            {generatingReport ? t('simulation_view.gerando') : t('simulation_view.gerar_relatorio')}
           </button>
           <button
+            type="button"
             onClick={() => navigate('/simulate')}
             style={{
               background: '#081222', color: '#94A3B8', border: '1px solid #112236',
@@ -209,7 +214,7 @@ export default function SimulationView() {
               fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
             }}
           >
-            Nova simulação →
+            {t('simulation_view.nova_simulacao')}
           </button>
           {reportError && (
             <span style={{ color: '#f87171', fontSize: '0.875rem' }}>

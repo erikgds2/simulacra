@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../api'
 import { SkeletonList } from './Skeleton'
 import { toast } from './Toast'
 
 const INTL_SOURCES = ['fullfact', 'snopes', 'factcheckorg']
-const REGION_TABS = [
-  { id: 'all', label: 'Todas' },
-  { id: 'brasil', label: '🇧🇷 Brasil' },
-  { id: 'internacional', label: '🌍 Internacional' },
-]
 
 function isInternational(seed) {
   return seed.region_br === 'internacional' || INTL_SOURCES.includes(seed.source)
 }
 
 export default function SeedSelector({ onSelect }) {
+  const { t } = useTranslation()
   const [seeds, setSeeds] = useState([])
   const [loading, setLoading] = useState(false)
   const [collecting, setCollecting] = useState(false)
@@ -24,6 +21,12 @@ export default function SeedSelector({ onSelect }) {
   const [translating, setTranslating] = useState({})
   const [translations, setTranslations] = useState({})
 
+  const REGION_TABS = [
+    { id: 'all', label: t('seeds.tab_todas') },
+    { id: 'brasil', label: t('seeds.tab_brasil') },
+    { id: 'internacional', label: t('seeds.tab_internacional') },
+  ]
+
   async function loadSeeds() {
     setLoading(true)
     try {
@@ -31,8 +34,8 @@ export default function SeedSelector({ onSelect }) {
       const data = await res.json()
       setSeeds(data.seeds || [])
     } catch {
-      setError('Erro ao carregar seeds. O backend pode estar acordando — tente novamente em 30s.')
-      toast('Erro ao coletar seeds. Tente novamente.', 'error')
+      setError(t('seeds.erro_coletar'))
+      toast(t('seeds.erro_coletar'), 'error')
     } finally {
       setLoading(false)
     }
@@ -46,28 +49,28 @@ export default function SeedSelector({ onSelect }) {
       if (!res.ok) throw new Error(`Erro ${res.status}`)
       const data = await res.json()
       await loadSeeds()
-      toast(`${data.collected} novas seeds coletadas!`, 'success')
+      toast(t('seeds.toast_coletadas', { count: data.collected }), 'success')
     } catch (e) {
       setError(`Erro ao coletar: ${e.message}. Aguarde 30s e tente novamente.`)
-      toast('Erro ao coletar seeds. Tente novamente.', 'error')
+      toast(t('seeds.erro_coletar'), 'error')
     } finally {
       setCollecting(false)
     }
   }
 
   async function translateSeed(seed) {
-    setTranslating(t => ({ ...t, [seed.id]: true }))
+    setTranslating(prev => ({ ...prev, [seed.id]: true }))
     try {
       const res = await apiFetch('/seeds/translate', {
         method: 'POST',
         body: JSON.stringify({ title: seed.title, content: seed.content }),
       })
       const data = await res.json()
-      setTranslations(t => ({ ...t, [seed.id]: data }))
+      setTranslations(prev => ({ ...prev, [seed.id]: data }))
     } catch {
       setError('Erro ao traduzir. Verifique se há créditos na API Anthropic.')
     } finally {
-      setTranslating(t => ({ ...t, [seed.id]: false }))
+      setTranslating(prev => ({ ...prev, [seed.id]: false }))
     }
   }
 
@@ -92,39 +95,49 @@ export default function SeedSelector({ onSelect }) {
     <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '0.375rem' }}>
+        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
           {REGION_TABS.map(tab => {
             const count = tab.id === 'all' ? seeds.length : tab.id === 'brasil' ? brCount : intlCount
             return (
-              <button key={tab.id} onClick={() => setRegionTab(tab.id)} style={{
-                padding: '0.35rem 0.875rem',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                fontWeight: 500,
-                border: '1px solid',
-                borderColor: regionTab === tab.id ? '#06B6D4' : '#112236',
-                background: regionTab === tab.id ? '#06B6D415' : 'transparent',
-                color: regionTab === tab.id ? '#06B6D4' : '#64748B',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}>
+              <button
+                type="button"
+                key={tab.id}
+                onClick={() => setRegionTab(tab.id)}
+                style={{
+                  padding: '0.35rem 0.875rem',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  border: '1px solid',
+                  borderColor: regionTab === tab.id ? '#06B6D4' : '#112236',
+                  background: regionTab === tab.id ? '#06B6D415' : 'transparent',
+                  color: regionTab === tab.id ? '#06B6D4' : '#64748B',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
                 {tab.label} <span style={{ opacity: 0.6, fontFamily: 'var(--mono)', fontSize: '0.7rem' }}>{count}</span>
               </button>
             )
           })}
         </div>
-        <button onClick={collectSeeds} disabled={collecting} style={{
-          padding: '0.35rem 0.875rem',
-          borderRadius: '6px',
-          fontSize: '0.78rem',
-          fontWeight: 500,
-          border: '1px solid #112236',
-          background: 'transparent',
-          color: collecting ? '#475569' : '#06B6D4',
-          cursor: collecting ? 'not-allowed' : 'pointer',
-          transition: 'all 0.15s',
-        }}>
-          {collecting ? '⟳ Coletando...' : '↓ Atualizar feeds'}
+        <button
+          type="button"
+          onClick={collectSeeds}
+          disabled={collecting}
+          style={{
+            padding: '0.35rem 0.875rem',
+            borderRadius: '6px',
+            fontSize: '0.78rem',
+            fontWeight: 500,
+            border: '1px solid #112236',
+            background: 'transparent',
+            color: collecting ? '#475569' : '#06B6D4',
+            cursor: collecting ? 'not-allowed' : 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          {collecting ? t('seeds.atualizando') : t('seeds.atualizar')}
         </button>
       </div>
 
@@ -139,9 +152,9 @@ export default function SeedSelector({ onSelect }) {
       ) : filtered.length === 0 ? (
         <div style={{ background: '#081222', border: '1px solid #112236', borderRadius: '10px', padding: '2rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', opacity: 0.3 }}>◎</div>
-          <p style={{ color: '#64748B', fontSize: '0.875rem' }}>Nenhuma seed coletada ainda.</p>
+          <p style={{ color: '#64748B', fontSize: '0.875rem' }}>{t('seeds.nenhuma')}</p>
           <p style={{ color: '#475569', fontSize: '0.78rem', marginTop: '0.35rem' }}>
-            Clique em "Atualizar feeds" para buscar das agências de checagem.
+            {t('seeds.nenhuma_hint')}
           </p>
         </div>
       ) : (
@@ -152,15 +165,21 @@ export default function SeedSelector({ onSelect }) {
             const isTranslating = translating[seed.id]
             const isSelected = selected === seed.id
             return (
-              <div key={seed.id} onClick={() => handleSelect(seed)} style={{
-                background: isSelected ? '#0D1B2E' : '#081222',
-                border: '1px solid',
-                borderColor: isSelected ? '#06B6D4' : '#112236',
-                borderRadius: '10px',
-                padding: '0.875rem 1rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
+              <div
+                key={seed.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleSelect(seed)}
+                onKeyDown={e => e.key === 'Enter' && handleSelect(seed)}
+                style={{
+                  background: isSelected ? '#0D1B2E' : '#081222',
+                  border: '1px solid',
+                  borderColor: isSelected ? '#06B6D4' : '#112236',
+                  borderRadius: '10px',
+                  padding: '0.875rem 1rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
                 onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = '#1E3A5F' }}
                 onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = '#112236' }}
               >
@@ -171,8 +190,10 @@ export default function SeedSelector({ onSelect }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
                     {isIntl && (
                       <button
+                        type="button"
                         onClick={e => { e.stopPropagation(); if (!tr) translateSeed(seed) }}
                         title={tr ? 'Já traduzido' : 'Traduzir para PT-BR'}
+                        aria-label={tr ? 'Já traduzido' : 'Traduzir para PT-BR'}
                         style={{
                           background: tr ? '#0D2E1E' : '#081222',
                           border: '1px solid',
@@ -185,7 +206,7 @@ export default function SeedSelector({ onSelect }) {
                           display: 'flex', alignItems: 'center', gap: '0.25rem',
                         }}
                       >
-                        {isTranslating ? '...' : tr ? '✓ PT' : '🌐 PT'}
+                        {isTranslating ? t('seeds.traduzindo') : tr ? `✓ ${t('seeds.traduzir').replace('🌐 ', '')}` : t('seeds.traduzir')}
                       </button>
                     )}
                     <span style={{
