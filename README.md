@@ -16,6 +16,28 @@
 
 ---
 
+## Resultado real
+
+**Caso:** Fake news financeira — padrão Pix/banco (seed sintética representativa de padrão verificado pela Agência Lupa e Aos Fatos, 2021-2024)
+
+> *"URGENTE: Banco Central suspende operações do Pix por falha de segurança. Transações acima de R$ 500 estão bloqueadas até segunda-feira..."*
+
+Simulação com **200 agentes**, semente aleatória fixa 42, 5 cenários de intervenção:
+
+| Intervenção | Score | Label | Pico infectados | Alcance total |
+|---|---|---|---|---|
+| Remoção | **7** | Baixo | 22% | 75,5% |
+| Fact-check | 21 | Baixo | 47% | 99% |
+| Contra-narrativa | 28 | Moderado | 48,5% | 99% |
+| Aviso de rótulo | 36 | Moderado | 52,5% | 100% |
+| **Sem intervenção** | **74** | **Alto** | **54,5%** | **100%** |
+
+**Remoção reduz o risco em 91% vs. sem intervenção** (score 74 → 7).
+
+Para reproduzir: `cd backend && python cases/run_demo.py`
+
+---
+
 ## O problema
 
 Fake news sobre o Pix, rumores de falência, notícias eleitorais falsas — uma vez que saem do WhatsApp, você tem minutos para responder. Sem dados sobre como a narrativa vai se espalhar, decisões são tomadas no feeling.
