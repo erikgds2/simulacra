@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 const links = [
   { to: '/', label: 'Painel' },
   { to: '/simulate', label: 'Simular' },
+  { to: '/compare', label: 'Comparar' },
 ]
 
 export default function Navbar() {
@@ -34,7 +35,7 @@ export default function Navbar() {
             boxShadow: '0 0 12px #06B6D440',
           }}>D</div>
           <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#E2E8F0', letterSpacing: '0.02em' }}>
-            DesinfoLab
+            Simulacra
           </span>
           <span style={{
             fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.45rem',

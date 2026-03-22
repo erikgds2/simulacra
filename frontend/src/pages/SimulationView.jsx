@@ -36,6 +36,7 @@ export default function SimulationView() {
   const [ticks, setTicks] = useState([])
   const [done, setDone] = useState(false)
   const [connected, setConnected] = useState(false)
+  const [result, setResult] = useState(null)
   const [generatingReport, setGeneratingReport] = useState(false)
   const [reportError, setReportError] = useState(null)
   const esRef = useRef(null)
@@ -52,6 +53,10 @@ export default function SimulationView() {
         es.close()
         setConnected(false)
         toast('Simulação concluída! Gere o relatório abaixo.', 'success')
+        apiFetch(`/simulation/${id}/result`)
+          .then(r => r.json())
+          .then(d => setResult(d))
+          .catch(() => {})
         return
       }
       setTicks(prev => [...prev, data])
@@ -122,6 +127,43 @@ export default function SimulationView() {
         <MetricCard label="Infectados"  value={last.I} color={COLORS.I} />
         <MetricCard label="Recuperados" value={last.R} color={COLORS.R} />
       </div>
+
+      {result?.risk && (
+        <div style={{
+          background: '#1a1d27',
+          border: `1px solid ${result.risk.color}44`,
+          borderRadius: '12px',
+          padding: '1.25rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontSize: '2.5rem', fontWeight: 700,
+              color: result.risk.color, lineHeight: 1,
+            }}>
+              {result.risk.score}
+            </div>
+            <div style={{
+              color: result.risk.color, fontSize: '0.8rem',
+              fontWeight: 600, marginTop: '0.25rem',
+            }}>
+              {result.risk.label}
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ color: '#c7d2fe', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>
+              Score de risco
+            </p>
+            <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
+              {result.risk.description}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div style={{
         background: '#081222',

@@ -41,7 +41,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://desinfolab-api.onrender.com' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://simulacra-api.onrender.com' }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

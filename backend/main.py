@@ -16,7 +16,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("desinfolab")
+logger = logging.getLogger("simulacra")
 
 REQUIRED_ENV_VARS = ["ANTHROPIC_API_KEY"]
 
@@ -33,17 +33,17 @@ async def lifespan(app: FastAPI):
     if env != "test":
         check_env()
     init_db()
-    logger.info("DesinfoLab iniciado — banco inicializado")
+    logger.info("Simulacra iniciado — banco inicializado")
     yield
-    logger.info("DesinfoLab encerrado")
+    logger.info("Simulacra encerrado")
 
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 app = FastAPI(
-    title="DesinfoLab API",
-    version="0.3.0",
-    description="Simulador de propagação de desinformação no Brasil",
+    title="Simulacra API",
+    version="1.0.0",
+    description="Motor de simulação de comportamento coletivo para o Brasil. Simule propagação de desinformação, teste intervenções e receba relatórios analíticos em português.",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -87,8 +87,8 @@ async def health():
     from database import DB_PATH
     return {
         "status": "ok",
-        "app": "DesinfoLab",
-        "version": "0.3.0",
+        "app": "Simulacra",
+        "version": "1.0.0",
         "environment": os.getenv("ENVIRONMENT", "development"),
         "db_path": str(DB_PATH),
         "db_exists": DB_PATH.exists(),

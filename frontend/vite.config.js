@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    base: mode === 'production' ? '/desinfolab/' : '/',
+    base: mode === 'production' ? '/simulacra/' : '/',
     server: {
       proxy: {
         '/api': {

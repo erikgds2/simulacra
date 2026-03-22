@@ -122,7 +122,7 @@ async def _fetch_rss(source: dict) -> list[dict]:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             resp = await client.get(
                 source["url"],
-                headers={"User-Agent": "Mozilla/5.0 (compatible; DesinfoLab/1.0; +https://github.com/erikgds2/desinfolab)"},
+                headers={"User-Agent": "Mozilla/5.0 (compatible; Simulacra/1.0; +https://github.com/erikgds2/simulacra)"},
             )
             resp.raise_for_status()
             feed = feedparser.parse(resp.text)

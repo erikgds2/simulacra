@@ -58,7 +58,7 @@ Analise os dados desta simulação SEIR de propagação de desinformação e esc
 ## Estrutura do Relatório
 Produza o relatório **em markdown** com exatamente estas seções:
 
-# Relatório de Propagação — DesinfoLab
+# Relatório de Propagação — Simulacra
 
 ## 1. Resumo Executivo
 (2-3 parágrafos objetivos sobre o que foi simulado e os principais achados)
@@ -76,7 +76,7 @@ Produza o relatório **em markdown** com exatamente estas seções:
 (Lista de 4-5 ações concretas para reduzir propagação, voltadas a: plataformas digitais, agências de fact-checking, governo e usuários finais)
 
 ---
-*Relatório gerado automaticamente pelo DesinfoLab · Modelo: {MODEL}*"""
+*Relatório gerado automaticamente pelo Simulacra · Modelo: {MODEL}*"""
 
 
 def generate_report(sim_id: str) -> dict:
