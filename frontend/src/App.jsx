@@ -6,19 +6,24 @@ import Simulate from './pages/Simulate.jsx'
 import SimulationView from './pages/SimulationView.jsx'
 import Report from './pages/Report.jsx'
 import NotFound from './pages/NotFound.jsx'
+import { ToastContainer } from './components/Toast'
+import ErrorBoundary from './components/ErrorBoundary'
 
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.PROD ? '/desinfolab' : '/'}>
       <div style={{ background: '#0f1117', minHeight: '100vh' }}>
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/simulate" element={<Simulate />} />
-          <Route path="/simulation/:id" element={<SimulationView />} />
-          <Route path="/report/:id" element={<Report />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/simulate" element={<Simulate />} />
+            <Route path="/simulation/:id" element={<SimulationView />} />
+            <Route path="/report/:id" element={<Report />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ErrorBoundary>
+        <ToastContainer />
       </div>
     </BrowserRouter>
   )
