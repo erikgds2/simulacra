@@ -1,0 +1,65 @@
+{
+  "seed": "URGENTE: Banco Central suspende operações do Pix por falha de segurança. Transações acima de R$ 500 estão bloqueadas até segunda-feira. Usuários relatam dinheiro desaparecendo das contas. Migre seu dinheiro para outro banco imediatamente. Compartilhe antes que apaguem.",
+  "num_agents": 200,
+  "random_seed": 42,
+  "best_intervention": "Remoção",
+  "worst_intervention": "Sem intervenção",
+  "risk_reduction_pct": 91,
+  "results": [
+    {
+      "label": "Remoção",
+      "intervention": "removal",
+      "peak_infected": 44,
+      "peak_pct": 22.0,
+      "time_to_peak": 62,
+      "total_reach_pct": 75.5,
+      "risk_score": 7,
+      "risk_label": "Baixo",
+      "risk_color": "#34d399"
+    },
+    {
+      "label": "Fact-check",
+      "intervention": "fact_check",
+      "peak_infected": 94,
+      "peak_pct": 47.0,
+      "time_to_peak": 20,
+      "total_reach_pct": 99.0,
+      "risk_score": 21,
+      "risk_label": "Baixo",
+      "risk_color": "#34d399"
+    },
+    {
+      "label": "Contra-narrativa",
+      "intervention": "counter_narrative",
+      "peak_infected": 97,
+      "peak_pct": 48.5,
+      "time_to_peak": 20,
+      "total_reach_pct": 99.0,
+      "risk_score": 28,
+      "risk_label": "Moderado",
+      "risk_color": "#fbbf24"
+    },
+    {
+      "label": "Aviso de rótulo",
+      "intervention": "label_warning",
+      "peak_infected": 105,
+      "peak_pct": 52.5,
+      "time_to_peak": 17,
+      "total_reach_pct": 100.0,
+      "risk_score": 36,
+      "risk_label": "Moderado",
+      "risk_color": "#fbbf24"
+    },
+    {
+      "label": "Sem intervenção",
+      "intervention": null,
+      "peak_infected": 109,
+      "peak_pct": 54.5,
+      "time_to_peak": 15,
+      "total_reach_pct": 100.0,
+      "risk_score": 74,
+      "risk_label": "Alto",
+      "risk_color": "#f97316"
+    }
+  ]
+}
