@@ -1,147 +1,186 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiFetch } from '../api'
+import { SkeletonList } from '../components/Skeleton'
+import ColdStartBanner from '../components/ColdStartBanner'
+import { toast } from '../components/Toast'
 
-const STATUS = {
-  ready:    { color: '#F59E0B', label: 'Aguardando' },
-  finished: { color: '#10B981', label: 'Concluída' },
-  error:    { color: '#EF4444', label: 'Erro' },
-}
-
-function fmt(iso) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-}
-
-const features = [
+const infoCards = [
   {
-    icon: '⬡',
-    title: 'Grafo Barabási-Albert',
-    text: 'Rede com topologia de redes sociais reais — poucos nós altamente conectados (influenciadores) e maioria com poucas conexões.',
+    title: 'Como funciona',
+    text: 'Simula propagação de desinformação em redes sociais usando SEIR em grafos Barabási-Albert.',
   },
   {
-    icon: '◎',
-    title: 'Modelo SEIR',
-    text: 'Simulação epidemiológica: Suscetível → Exposto → Infectado → Recuperado. O mesmo modelo usado para doenças aplicado à desinformação.',
+    title: 'Fontes de dados',
+    text: 'Seeds coletadas da Agência Lupa e Aos Fatos — bases de verificação de fatos do Brasil.',
   },
   {
-    icon: '⚡',
-    title: '4 Tipos de Intervenção',
-    text: 'Compare o impacto de fact-check, remoção de conteúdo, contra-narrativa e avisos de rótulo sobre a propagação.',
+    title: 'Intervenções',
+    text: 'Teste 4 estratégias: fact-check, remoção, contra-narrativa e aviso de rótulo.',
   },
 ]
+
+const STATUS_COLORS = {
+  ready: '#fbbf24',
+  finished: '#34d399',
+  error: '#f87171',
+}
+
+const STATUS_LABELS = {
+  ready: 'em andamento',
+  finished: 'concluída',
+  error: 'erro',
+}
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const [simulations, setSimulations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [apiOnline, setApiOnline] = useState(null)
 
   useEffect(() => {
-    apiFetch('/simulation/list?limit=10')
-      .then(r => r.json())
-      .then(d => setSimulations(d.simulations || []))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    async function load() {
+      try {
+        const health = await apiFetch('/health')
+        setApiOnline(health.ok)
+        const r = await apiFetch('/simulation/list?limit=10')
+        if (r.ok) {
+          const d = await r.json()
+          setSimulations(d.simulations || [])
+        }
+      } catch {
+        setApiOnline(false)
+        toast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [])
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '3rem 2rem' }}>
+    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '3rem 2rem' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#818cf8', marginBottom: '0.5rem' }}>
+        DesinfoLab
+      </h1>
+      <p style={{ color: '#94a3b8', marginBottom: '2.5rem', fontSize: '1.05rem' }}>
+        Simulador de propagação de desinformação no Brasil
+      </p>
 
-      {/* Hero */}
-      <div style={{ marginBottom: '3rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <span style={{
-            fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.1em',
-            color: '#06B6D4', textTransform: 'uppercase',
-            padding: '0.25rem 0.75rem', background: '#06B6D415',
-            border: '1px solid #06B6D430', borderRadius: '20px',
-          }}>Motor de Simulação</span>
-        </div>
-        <h1 style={{
-          fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700,
-          color: '#E2E8F0', lineHeight: 1.15, marginBottom: '1rem',
-          letterSpacing: '-0.02em',
-        }}>
-          Como a desinformação<br />
-          <span style={{ color: '#06B6D4' }}>se espalha no Brasil</span>
-        </h1>
-        <p style={{ color: '#94A3B8', fontSize: '1.05rem', maxWidth: '520px', lineHeight: 1.7, marginBottom: '2rem' }}>
-          Simule a propagação de fake news em redes sociais com modelo epidemiológico SEIR.
-          Teste intervenções e veja os resultados em tempo real.
-        </p>
-        <button className="btn-primary" onClick={() => navigate('/simulate')}
-          style={{ padding: '0.75rem 2rem', fontSize: '0.95rem' }}>
-          Iniciar simulação →
-        </button>
-      </div>
+      {loading && apiOnline === null && <ColdStartBanner />}
 
-      {/* Feature cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
-        {features.map(({ icon, title, text }) => (
-          <div key={title} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ fontSize: '1.25rem', color: '#06B6D4' }}>{icon}</div>
-            <h3 style={{ color: '#E2E8F0', fontSize: '0.95rem', fontWeight: 600 }}>{title}</h3>
-            <p style={{ color: '#64748B', fontSize: '0.85rem', lineHeight: 1.65 }}>{text}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
+        {infoCards.map(({ title, text }) => (
+          <div key={title} style={{
+            background: '#1a1d27',
+            border: '1px solid #2d3148',
+            borderRadius: '12px',
+            padding: '1.5rem',
+          }}>
+            <h3 style={{ color: '#c7d2fe', marginBottom: '0.75rem', fontSize: '1rem' }}>{title}</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6 }}>{text}</p>
           </div>
         ))}
       </div>
 
-      {/* Simulations history */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h2 style={{ color: '#94A3B8', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Simulações recentes
-          </h2>
-          {simulations.length > 0 && (
-            <span className="mono" style={{ fontSize: '0.75rem', color: '#475569' }}>
-              {simulations.length} registro{simulations.length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
+      <button
+        onClick={() => navigate('/simulate')}
+        style={{
+          background: '#4f46e5', color: '#fff', border: 'none',
+          borderRadius: '8px', padding: '0.75rem 2rem',
+          fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
+          marginBottom: '3rem',
+        }}
+      >
+        Iniciar nova simulação →
+      </button>
 
-        {loading ? (
-          <div style={{ color: '#475569', fontSize: '0.875rem', padding: '2rem 0' }}>Carregando...</div>
-        ) : simulations.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '3rem', color: '#475569' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.75rem', opacity: 0.4 }}>◎</div>
-            <p>Nenhuma simulação ainda.</p>
-            <p style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}>Inicie uma acima para começar.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {simulations.map(sim => {
-              const st = STATUS[sim.status] || STATUS.ready
-              return (
-                <div key={sim.id} className="card card-hover"
-                  onClick={() => navigate(`/simulation/${sim.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem' }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: st.color, flexShrink: 0, boxShadow: `0 0 6px ${st.color}` }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ color: '#C7D2FE', fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {sim.seed_text?.slice(0, 90) || 'Sem texto'}…
-                    </p>
-                    <p style={{ color: '#475569', fontSize: '0.72rem', marginTop: '0.2rem', fontFamily: 'var(--mono)' }}>
-                      {fmt(sim.created_at)} · {sim.num_agents} agentes{sim.intervention ? ` · ${sim.intervention}` : ''}
-                    </p>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    {sim.peak_infected != null && (
-                      <p style={{ color: '#EF4444', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'var(--mono)' }}>
-                        pico {sim.peak_infected}
-                      </p>
-                    )}
-                    {sim.total_reach != null && (
-                      <p style={{ color: '#475569', fontSize: '0.72rem', marginTop: '0.1rem', fontFamily: 'var(--mono)' }}>
-                        {(sim.total_reach * 100).toFixed(1)}% alcance
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <h2 style={{ color: '#c7d2fe', fontSize: '1.1rem', margin: 0 }}>
+          Simulações recentes
+        </h2>
+        {apiOnline === false && (
+          <span style={{ color: '#f87171', fontSize: '0.78rem' }}>● servidor offline</span>
+        )}
+        {apiOnline === true && (
+          <span style={{ color: '#34d399', fontSize: '0.78rem' }}>● servidor online</span>
         )}
       </div>
+
+      {loading ? (
+        <SkeletonList count={3} />
+      ) : simulations.length === 0 ? (
+        <div style={{
+          background: '#1a1d27', border: '1px solid #2d3148',
+          borderRadius: '10px', padding: '2rem', textAlign: 'center',
+        }}>
+          <p style={{ color: '#64748b', margin: 0 }}>
+            Nenhuma simulação ainda.
+          </p>
+          <p style={{ color: '#475569', fontSize: '0.8rem', margin: '0.5rem 0 0' }}>
+            Clique em "Iniciar nova simulação" para começar.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {simulations.map(sim => (
+            <div
+              key={sim.id}
+              onClick={() => navigate(`/simulation/${sim.id}`)}
+              style={{
+                background: '#1a1d27', border: '1px solid #2d3148',
+                borderRadius: '10px', padding: '1rem 1.25rem',
+                cursor: 'pointer', display: 'flex',
+                alignItems: 'center', gap: '1rem',
+                transition: 'border-color 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#4f46e5'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#2d3148'}
+            >
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: STATUS_COLORS[sim.status] || '#64748b',
+                flexShrink: 0,
+              }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{
+                  color: '#c7d2fe', fontSize: '0.875rem', margin: 0,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {sim.seed_text?.slice(0, 80)}...
+                </p>
+                <p style={{ color: '#64748b', fontSize: '0.75rem', margin: '0.25rem 0 0' }}>
+                  {formatDate(sim.created_at)} · {sim.num_agents} agentes
+                  {sim.intervention ? ` · ${sim.intervention}` : ''}
+                  · <span style={{ color: STATUS_COLORS[sim.status] }}>
+                    {STATUS_LABELS[sim.status] || sim.status}
+                  </span>
+                </p>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                {sim.peak_infected != null && (
+                  <p style={{ color: '#f87171', fontSize: '0.875rem', margin: 0, fontWeight: 600 }}>
+                    Pico: {sim.peak_infected}
+                  </p>
+                )}
+                {sim.total_reach != null && (
+                  <p style={{ color: '#94a3b8', fontSize: '0.75rem', margin: '0.2rem 0 0' }}>
+                    Alcance: {(sim.total_reach * 100).toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
