@@ -451,6 +451,12 @@ export default function Report() {
                     label={t('report.intervencao')}
                     value={intervention_labels[sim.intervention] || t('report.nenhuma_intervencao')}
                   />
+                  {sim.region && (
+                    <MetricCard
+                      label={t('report.regiao')}
+                      value={sim.region}
+                    />
+                  )}
                 </div>
 
                 {/* Risk badge */}

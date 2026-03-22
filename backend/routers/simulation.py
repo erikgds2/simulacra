@@ -32,6 +32,7 @@ class StartRequest(BaseModel):
     num_agents: int = 200
     intervention: Optional[Literal["fact_check", "removal", "counter_narrative", "label_warning"]] = None
     random_seed: int = 42
+    region: Optional[Literal["SP", "NE", "SUL", "CO", "N", "RJ"]] = None
 
     @field_validator("seed_text")
     @classmethod
@@ -68,6 +69,7 @@ async def start_simulation(request: Request, req: StartRequest):
         num_agents=req.num_agents,
         intervention=req.intervention,
         random_seed=req.random_seed,
+        region=req.region,
     )
     _engines[sim_id] = engine
     save_simulation(sim_id, req.model_dump())
@@ -174,6 +176,7 @@ class CompareRequest(BaseModel):
     seed_text: str
     num_agents: int = 200
     random_seed: int = 42
+    region: Optional[Literal["SP", "NE", "SUL", "CO", "N", "RJ"]] = None
 
     @field_validator("seed_text")
     @classmethod
@@ -221,6 +224,7 @@ async def compare_interventions(request: Request, req: CompareRequest):
             num_agents=req.num_agents,
             intervention=intervention,
             random_seed=req.random_seed,
+            region=req.region,
         )
         ticks = list(engine.run_ticks())
         if not ticks:
@@ -259,6 +263,7 @@ async def compare_interventions(request: Request, req: CompareRequest):
         "seed_text": req.seed_text[:100] + ("..." if len(req.seed_text) > 100 else ""),
         "num_agents": req.num_agents,
         "random_seed": req.random_seed,
+        "region": req.region,
         "best_intervention": results[0]["label"] if results else None,
         "worst_intervention": results[-1]["label"] if results else None,
         "results": results,

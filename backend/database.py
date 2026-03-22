@@ -26,6 +26,7 @@ def init_db() -> None:
                 num_agents INTEGER NOT NULL,
                 intervention TEXT,
                 random_seed INTEGER NOT NULL,
+                region TEXT,
                 status TEXT NOT NULL DEFAULT 'ready',
                 created_at TEXT NOT NULL,
                 finished_at TEXT,
@@ -73,6 +74,11 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_simulations_created
                 ON simulations(created_at DESC);
         """)
+        # Migration: add region column to existing databases
+        try:
+            conn.execute("ALTER TABLE simulations ADD COLUMN region TEXT")
+        except Exception:
+            pass  # Column already exists
 
 
 def save_simulation(sim_id: str, config: dict) -> None:
@@ -80,8 +86,8 @@ def save_simulation(sim_id: str, config: dict) -> None:
         conn.execute(
             """
             INSERT OR IGNORE INTO simulations
-                (id, seed_text, seed_id, num_agents, intervention, random_seed, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'ready', ?)
+                (id, seed_text, seed_id, num_agents, intervention, random_seed, region, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'ready', ?)
             """,
             (
                 sim_id,
@@ -90,6 +96,7 @@ def save_simulation(sim_id: str, config: dict) -> None:
                 config.get("num_agents", 200),
                 config.get("intervention"),
                 config.get("random_seed", 42),
+                config.get("region"),
                 datetime.now(timezone.utc).isoformat(),
             ),
         )

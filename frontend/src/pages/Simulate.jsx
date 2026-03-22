@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SeedSelector from '../components/SeedSelector'
+import RegionSelector from '../components/RegionSelector'
 import { apiFetch } from '../api'
 import { toast } from '../components/Toast'
 
@@ -20,6 +21,7 @@ export default function Simulate() {
   const [selectedSeed, setSelectedSeed] = useState(null)
   const [numAgents, setNumAgents] = useState(200)
   const [intervention, setIntervention] = useState('')
+  const [region, setRegion] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -50,6 +52,7 @@ export default function Simulate() {
         seed_id: tab === 0 ? selectedSeed?.id : null,
         num_agents: numAgents,
         intervention: intervention || null,
+        region: region || null,
       }
       const res = await apiFetch('/simulation/start', {
         method: 'POST',
@@ -114,6 +117,7 @@ export default function Simulate() {
           style={{ width: '100%', marginTop: '0.5rem', marginBottom: '0.35rem', accentColor: '#06B6D4' }}
         />
         <p style={{ color: '#475569', fontSize: '0.75rem', marginBottom: '1.5rem' }}>{t('simulate.agentes_hint')}</p>
+        <RegionSelector value={region} onChange={setRegion} />
         <label htmlFor="intervention" style={{ color: '#94A3B8', fontSize: '0.875rem' }}>{t('simulate.intervencao_label')}</label>
         <select
           id="intervention"
