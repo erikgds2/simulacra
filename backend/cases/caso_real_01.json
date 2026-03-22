@@ -1,0 +1,9 @@
+{
+  "id": "caso-real-01",
+  "titulo": "Fake news financeira — padrão Pix/banco",
+  "seed_text": "URGENTE: Banco Central suspende operações do Pix por falha de segurança. Transações acima de R$ 500 estão bloqueadas até segunda-feira. Usuários relatam dinheiro desaparecendo das contas. Migre seu dinheiro para outro banco imediatamente. Compartilhe antes que apaguem.",
+  "fonte": "Seed sintética representativa de padrão verificado pela Agência Lupa e Aos Fatos",
+  "contexto": "Padrão comum de desinformação financeira no Brasil. Notícias falsas sobre bloqueio do Pix e falhas bancárias geram pânico e corrida de saques. A Agência Lupa verificou múltiplas variações deste padrão entre 2021-2024.",
+  "data": "2026-03",
+  "categoria": "financeiro"
+}
