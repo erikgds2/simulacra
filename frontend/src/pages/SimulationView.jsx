@@ -8,6 +8,7 @@ import {
 import PropagationGraph from '../components/PropagationGraph'
 import { apiFetch } from '../api'
 import BASE_URL from '../api'
+import { toast } from '../components/Toast'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -50,6 +51,7 @@ export default function SimulationView() {
         setDone(true)
         es.close()
         setConnected(false)
+        toast('Simulação concluída! Gere o relatório abaixo.', 'success')
         return
       }
       setTicks(prev => [...prev, data])
@@ -57,6 +59,7 @@ export default function SimulationView() {
     es.onerror = () => {
       es.close()
       setConnected(false)
+      toast('Conexão com o servidor perdida.', 'error')
     }
     return () => es.close()
   }, [id])
@@ -95,6 +98,7 @@ export default function SimulationView() {
         throw new Error(err.detail || `Erro ${res.status}`)
       }
       const data = await res.json()
+      toast('Relatório gerado com sucesso!', 'success')
       navigate(`/report/${data.id}`)
     } catch (err) {
       setReportError(err.message)

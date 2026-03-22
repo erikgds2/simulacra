@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SeedSelector from '../components/SeedSelector'
 import { apiFetch } from '../api'
+import { toast } from '../components/Toast'
 
 const interventions = [
   { value: '', label: 'Nenhuma — propagação livre, sem intervenção' },
@@ -53,10 +54,14 @@ export default function Simulate() {
         body: JSON.stringify(body),
       })
       const data = await res.json()
-      if (data.simulation_id) navigate(`/simulation/${data.simulation_id}`)
-      else setError('Erro ao iniciar simulacao.')
+      if (data.simulation_id) {
+        toast('Simulação iniciada! Redirecionando...', 'success')
+        navigate(`/simulation/${data.simulation_id}`)
+      } else setError('Erro ao iniciar simulacao.')
     } catch {
-      setError('Nao foi possivel conectar ao backend.')
+      const msg = 'Nao foi possivel conectar ao backend.'
+      setError(msg)
+      toast(msg, 'error')
     } finally {
       setLoading(false)
     }
