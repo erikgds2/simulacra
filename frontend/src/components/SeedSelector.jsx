@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '../api'
+import { SkeletonList } from './Skeleton'
+import { toast } from './Toast'
 
 const INTL_SOURCES = ['fullfact', 'snopes', 'factcheckorg']
 const REGION_TABS = [
@@ -30,6 +32,7 @@ export default function SeedSelector({ onSelect }) {
       setSeeds(data.seeds || [])
     } catch {
       setError('Erro ao carregar seeds. O backend pode estar acordando — tente novamente em 30s.')
+      toast('Erro ao coletar seeds. Tente novamente.', 'error')
     } finally {
       setLoading(false)
     }
@@ -41,9 +44,12 @@ export default function SeedSelector({ onSelect }) {
     try {
       const res = await apiFetch('/seeds/collect', { method: 'POST' })
       if (!res.ok) throw new Error(`Erro ${res.status}`)
+      const data = await res.json()
       await loadSeeds()
+      toast(`${data.collected} novas seeds coletadas!`, 'success')
     } catch (e) {
       setError(`Erro ao coletar: ${e.message}. Aguarde 30s e tente novamente.`)
+      toast('Erro ao coletar seeds. Tente novamente.', 'error')
     } finally {
       setCollecting(false)
     }
@@ -129,7 +135,7 @@ export default function SeedSelector({ onSelect }) {
       )}
 
       {loading ? (
-        <div style={{ color: '#475569', padding: '2rem', textAlign: 'center', fontSize: '0.875rem' }}>Carregando...</div>
+        <SkeletonList count={3} />
       ) : filtered.length === 0 ? (
         <div style={{ background: '#081222', border: '1px solid #112236', borderRadius: '10px', padding: '2rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', opacity: 0.3 }}>◎</div>
