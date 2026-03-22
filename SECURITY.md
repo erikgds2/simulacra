@@ -1,4 +1,4 @@
-# Política de segurança — DesinfoLab
+# Política de segurança — Simulacra
 
 ## Credenciais e segredos
 

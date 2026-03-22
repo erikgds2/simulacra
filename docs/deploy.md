@@ -1,4 +1,4 @@
-# Deploy — DesinfoLab
+# Deploy — Simulacra
 
 ## Backend no Render (free tier)
 
@@ -10,9 +10,9 @@
 
 1. Acesse https://render.com e faça login
 2. Clique em **New** → **Web Service**
-3. Conecte o repositório `erikgds2/desinfolab`
+3. Conecte o repositório `erikgds2/simulacra`
 4. Configure:
-   - **Name**: desinfolab-api
+   - **Name**: simulacra-api
    - **Root Directory**: backend
    - **Runtime**: Python 3
    - **Build Command**: `pip install -r requirements.txt`
@@ -31,14 +31,14 @@
 | `DATA_DIR` | /data |
 
 6. Em **Disks**, adicione:
-   - **Name**: desinfolab-data
+   - **Name**: simulacra-data
    - **Mount Path**: /data
    - **Size**: 1 GB
 
 7. Clique em **Create Web Service**
 
 ### URL pública
-Após o deploy: `https://desinfolab-api.onrender.com`
+Após o deploy: `https://simulacra-api.onrender.com`
 
 ### Atenção: cold start
 O free tier do Render hiberna após 15 minutos sem uso.
@@ -47,15 +47,15 @@ Isso é normal e esperado no free tier.
 
 ### Verificar deploy
 ```bash
-curl https://desinfolab-api.onrender.com/health
+curl https://simulacra-api.onrender.com/health
 ```
 
 Deve retornar:
 ```json
 {
   "status": "ok",
-  "app": "DesinfoLab",
-  "version": "0.3.0",
+  "app": "Simulacra",
+  "version": "1.0.0",
   "environment": "production",
   "db_exists": true
 }

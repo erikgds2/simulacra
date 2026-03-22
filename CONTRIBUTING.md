@@ -1,11 +1,11 @@
-# Contribuindo com o DesinfoLab
+# Contribuindo com o Simulacra
 
 Obrigado pelo interesse em contribuir! Este guia explica como participar do projeto.
 
 ## Como começar
 
 1. Faça um fork do repositório
-2. Clone seu fork: `git clone https://github.com/SEU-USER/desinfolab`
+2. Clone seu fork: `git clone https://github.com/SEU-USER/simulacra`
 3. Crie uma branch: `git checkout -b feat/minha-contribuicao`
 4. Faça suas mudanças
 5. Rode os testes: `cd backend && python -m pytest tests/ -v`
@@ -65,4 +65,4 @@ Todos os testes ficam em `backend/tests/`.
 
 ## Dúvidas
 
-Abra uma [issue](https://github.com/erikgds2/desinfolab/issues) com a tag `question`.
+Abra uma [issue](https://github.com/erikgds2/simulacra/issues) com a tag `question`.
