@@ -6,7 +6,7 @@ from typing import AsyncGenerator, Literal, Optional
 
 import bleach
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, field_validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -171,6 +171,45 @@ async def get_graph(sim_id: str):
         "final_tick": ticks[-1],
         "ticks": ticks,
     }
+
+
+@router.get("/{sim_id}/export")
+async def export_ticks(sim_id: str, format: str = "csv"):
+    """Export simulation ticks as CSV or JSON file download."""
+    sim = get_simulation(sim_id)
+    if not sim:
+        raise HTTPException(status_code=404, detail="Simulação não encontrada")
+    ticks = get_simulation_ticks(sim_id)
+    if not ticks:
+        raise HTTPException(status_code=400, detail="Sem dados de ticks para exportar")
+
+    if format == "json":
+        import json as _json
+        content = _json.dumps({
+            "simulation_id": sim_id,
+            "seed_text": sim.get("seed_text", ""),
+            "num_agents": sim.get("num_agents"),
+            "intervention": sim.get("intervention"),
+            "region": sim.get("region"),
+            "ticks": ticks,
+        }, ensure_ascii=False, indent=2)
+        return Response(
+            content=content.encode("utf-8"),
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="simulacra_{sim_id[:8]}_ticks.json"'},
+        )
+    else:
+        # Default: CSV
+        import io, csv as _csv
+        buf = io.StringIO()
+        writer = _csv.DictWriter(buf, fieldnames=["tick", "S", "E", "I", "R"])
+        writer.writeheader()
+        writer.writerows(ticks)
+        return Response(
+            content=buf.getvalue().encode("utf-8"),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="simulacra_{sim_id[:8]}_ticks.csv"'},
+        )
 
 
 class CompareRequest(BaseModel):
