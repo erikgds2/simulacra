@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import json
 import uuid
 from typing import AsyncGenerator, Literal, Optional
@@ -195,6 +196,40 @@ class CompareRequest(BaseModel):
             raise ValueError("num_agents mínimo é 10")
         if v > 500:
             raise ValueError("num_agents máximo é 500 no modo comparação")
+        return v
+
+
+class MultiSeedRequest(BaseModel):
+    seeds: list[str]
+    num_agents: int = 150
+    intervention: Optional[Literal["fact_check", "removal", "counter_narrative", "label_warning"]] = None
+    random_seed: int = 42
+    region: Optional[Literal["SP", "NE", "SUL", "CO", "N", "RJ"]] = None
+
+    @field_validator("seeds")
+    @classmethod
+    def validate_seeds(cls, v: list[str]) -> list[str]:
+        if len(v) < 2:
+            raise ValueError("seeds deve ter pelo menos 2 itens")
+        if len(v) > 5:
+            raise ValueError("seeds nao pode ter mais de 5 itens")
+        cleaned = []
+        for s in v:
+            s = s.strip()
+            if len(s) < 10:
+                raise ValueError("cada seed deve ter pelo menos 10 caracteres")
+            if len(s) > 1000:
+                raise ValueError("cada seed nao pode ultrapassar 1000 caracteres")
+            cleaned.append(bleach.clean(s, tags=[], strip=True))
+        return cleaned
+
+    @field_validator("num_agents")
+    @classmethod
+    def validate_num_agents(cls, v: int) -> int:
+        if v < 10:
+            raise ValueError("num_agents minimo e 10")
+        if v > 300:
+            raise ValueError("num_agents maximo e 300 no modo multi-seed")
         return v
 
 
