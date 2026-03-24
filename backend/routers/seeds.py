@@ -8,6 +8,7 @@ import bleach
 import feedparser
 import httpx
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -198,6 +199,34 @@ async def get_seed(seed_id: str):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Seed não encontrada")
     return json.loads(file_path.read_text(encoding="utf-8"))
+
+
+@router.get("/export/csv")
+async def export_seeds_csv():
+    """Export all seeds as CSV file download."""
+    from database import list_seeds_from_db
+    import io, csv as _csv
+    seeds = list_seeds_from_db(limit=1000)
+    if not seeds:
+        raise HTTPException(status_code=404, detail="Nenhuma seed disponível para exportar")
+    buf = io.StringIO()
+    writer = _csv.DictWriter(buf, fieldnames=["id", "source_name", "title", "content", "url", "collected_at", "region_br"])
+    writer.writeheader()
+    for s in seeds:
+        writer.writerow({
+            "id": s.get("id", ""),
+            "source_name": s.get("source_name", ""),
+            "title": s.get("title", ""),
+            "content": s.get("content", "")[:200],
+            "url": s.get("url", ""),
+            "collected_at": s.get("collected_at", ""),
+            "region_br": s.get("region_br", ""),
+        })
+    return Response(
+        content=buf.getvalue().encode("utf-8"),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="simulacra_seeds.csv"'},
+    )
 
 
 @router.post("/translate", tags=["seeds"])
