@@ -3,6 +3,7 @@
     "painel": "Painel",
     "simular": "Simular",
     "comparar": "Comparar",
+    "multi": "Multi",
     "sistema_ativo": "Sistema ativo",
     "beta": "BETA"
   },
@@ -148,6 +149,26 @@
     "titulo": "Página não encontrada",
     "subtitulo": "A simulação pode ter expirado ou o link está incorreto.",
     "voltar": "Voltar ao Dashboard"
+  },
+  "multi": {
+    "titulo": "Multi-seed",
+    "subtitulo": "Rode a mesma configuração com até 5 notícias diferentes e compare os resultados.",
+    "seed_label": "Seed {{n}}",
+    "adicionar_seed": "+ Adicionar seed",
+    "remover_seed": "Remover",
+    "agentes_label": "Agentes na rede",
+    "agentes_hint": "Máximo 300 agentes no modo multi-seed",
+    "intervencao_label": "Intervenção (aplicada a todas)",
+    "botao_simular": "Simular todas →",
+    "botao_simulando": "Rodando {{count}} simulações...",
+    "minimo_chars": "Cada seed precisa de pelo menos 10 caracteres.",
+    "minimo_seeds": "Adicione pelo menos 2 seeds.",
+    "toast_ok": "{{count}} simulações concluídas!",
+    "seed_resultado": "Seed {{n}}",
+    "pico": "Pico",
+    "alcance": "Alcance",
+    "tempo_pico": "Tempo ao pico",
+    "ticks": "ticks"
   },
   "risk": {
     "baixo": "Baixo",
