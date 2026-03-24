@@ -233,6 +233,63 @@ class MultiSeedRequest(BaseModel):
         return v
 
 
+def _run_seed_simulation(
+    seed_text: str,
+    seed_index: int,
+    num_agents: int,
+    intervention,
+    random_seed: int,
+    region,
+) -> dict:
+    """Executa uma única simulação para um seed — chamado em thread pool."""
+    from agents.risk_scorer import calculate_risk_score, risk_label_description
+
+    engine = SimulationEngine(
+        num_agents=num_agents,
+        intervention=intervention,
+        random_seed=random_seed,
+        region=region,
+    )
+    ticks = list(engine.run_ticks())
+    if not ticks:
+        return {
+            "seed_text": seed_text[:120] + ("..." if len(seed_text) > 120 else ""),
+            "seed_index": seed_index,
+            "peak_infected": 0,
+            "peak_pct": 0.0,
+            "time_to_peak": 0,
+            "total_reach_pct": 0.0,
+            "total_ticks": 0,
+            "risk": {"score": 0, "label": "Baixo", "color": "#34d399", "factors": {}},
+        }
+
+    peak = max(ticks, key=lambda t: t["I"])
+    first = ticks[0]
+    total = first["S"] + first["E"] + first["I"] + first["R"]
+    total_reach = round((total - ticks[-1]["S"]) / total, 3)
+
+    risk = calculate_risk_score(
+        num_agents=num_agents,
+        peak_infected=peak["I"],
+        time_to_peak=peak["tick"],
+        total_reach=total_reach,
+        total_ticks=len(ticks),
+        intervention=intervention,
+    )
+    risk["description"] = risk_label_description(risk["label"])
+
+    return {
+        "seed_text": seed_text[:120] + ("..." if len(seed_text) > 120 else ""),
+        "seed_index": seed_index,
+        "peak_infected": peak["I"],
+        "peak_pct": round(peak["I"] / num_agents * 100, 1),
+        "time_to_peak": peak["tick"],
+        "total_reach_pct": round(total_reach * 100, 1),
+        "total_ticks": len(ticks),
+        "risk": risk,
+    }
+
+
 @router.post("/compare")
 @limiter.limit("5/minute")
 async def compare_interventions(request: Request, req: CompareRequest):
