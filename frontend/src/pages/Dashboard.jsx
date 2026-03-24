@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../api'
+import BASE_URL from '../api'
 import { SkeletonList } from '../components/Skeleton'
 import ColdStartBanner from '../components/ColdStartBanner'
 import { toast } from '../components/Toast'
@@ -101,12 +102,27 @@ export default function Dashboard() {
         <h2 style={{ color: '#c7d2fe', fontSize: '1.1rem', margin: 0 }}>
           {t('dashboard.recentes')}
         </h2>
-        {apiOnline === false && (
-          <span style={{ color: '#f87171', fontSize: '0.78rem' }}>{t('dashboard.servidor_offline')}</span>
-        )}
-        {apiOnline === true && (
-          <span style={{ color: '#34d399', fontSize: '0.78rem' }}>{t('dashboard.servidor_online')}</span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {apiOnline === false && (
+            <span style={{ color: '#f87171', fontSize: '0.78rem' }}>{t('dashboard.servidor_offline')}</span>
+          )}
+          {apiOnline === true && (
+            <span style={{ color: '#34d399', fontSize: '0.78rem' }}>{t('dashboard.servidor_online')}</span>
+          )}
+          <a
+            href={`${BASE_URL}/seeds/export/csv`}
+            download
+            title={t('export.tooltip_seeds')}
+            style={{
+              background: 'transparent', color: '#94a3b8', border: '1px solid #2d3148',
+              borderRadius: '6px', padding: '0.3rem 0.75rem',
+              fontSize: '0.75rem', cursor: 'pointer',
+              textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+            }}
+          >
+            {t('export.seeds_csv')}
+          </a>
+        </div>
       </div>
 
       {loading ? (
