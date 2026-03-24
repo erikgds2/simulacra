@@ -290,6 +290,41 @@ def _run_seed_simulation(
     }
 
 
+@router.post("/multi")
+@limiter.limit("3/minute")
+async def multi_seed_simulation(request: Request, req: MultiSeedRequest):
+    """
+    Roda a mesma configuração com múltiplas seeds em paralelo (thread pool).
+    Retorna métricas e score de risco para cada seed.
+    """
+    loop = asyncio.get_event_loop()
+
+    tasks = [
+        loop.run_in_executor(
+            None,
+            functools.partial(
+                _run_seed_simulation,
+                seed_text=seed,
+                seed_index=i,
+                num_agents=req.num_agents,
+                intervention=req.intervention,
+                random_seed=req.random_seed,
+                region=req.region,
+            ),
+        )
+        for i, seed in enumerate(req.seeds)
+    ]
+
+    results = await asyncio.gather(*tasks)
+
+    return {
+        "num_agents": req.num_agents,
+        "intervention": req.intervention,
+        "region": req.region,
+        "results": list(results),
+    }
+
+
 @router.post("/compare")
 @limiter.limit("5/minute")
 async def compare_interventions(request: Request, req: CompareRequest):
