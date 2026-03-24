@@ -3,6 +3,7 @@
     "painel": "Dashboard",
     "simular": "Simulate",
     "comparar": "Compare",
+    "multi": "Multi",
     "sistema_ativo": "System active",
     "beta": "BETA"
   },
@@ -148,6 +149,26 @@
     "titulo": "Page not found",
     "subtitulo": "The simulation may have expired or the link is incorrect.",
     "voltar": "Back to Dashboard"
+  },
+  "multi": {
+    "titulo": "Multi-seed",
+    "subtitulo": "Run the same configuration with up to 5 different news items and compare results.",
+    "seed_label": "Seed {{n}}",
+    "adicionar_seed": "+ Add seed",
+    "remover_seed": "Remove",
+    "agentes_label": "Network agents",
+    "agentes_hint": "Maximum 300 agents in multi-seed mode",
+    "intervencao_label": "Intervention (applied to all)",
+    "botao_simular": "Simulate all →",
+    "botao_simulando": "Running {{count}} simulations...",
+    "minimo_chars": "Each seed needs at least 10 characters.",
+    "minimo_seeds": "Add at least 2 seeds.",
+    "toast_ok": "{{count}} simulations done!",
+    "seed_resultado": "Seed {{n}}",
+    "pico": "Peak",
+    "alcance": "Reach",
+    "tempo_pico": "Time to peak",
+    "ticks": "ticks"
   },
   "risk": {
     "baixo": "Low",
