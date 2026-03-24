@@ -200,6 +200,86 @@ export default function MultiSeed() {
       </button>
 
       {loading && <PageLoader message={t('multi.botao_simulando', { count: seeds.length })} />}
+
+      {results && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '1rem',
+          marginTop: '1rem',
+        }}>
+          {results.results.map((result, i) => (
+            <ResultCard key={i} result={result} t={t} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RiskBadge({ score, label, color }) {
+  return (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.4rem',
+      background: color + '22',
+      border: `1px solid ${color}44`,
+      borderRadius: '6px',
+      padding: '0.2rem 0.6rem',
+    }}>
+      <span style={{ color, fontWeight: 700, fontSize: '0.9rem' }}>{score}</span>
+      <span style={{ color, fontSize: '0.75rem' }}>{label}</span>
+    </div>
+  )
+}
+
+function ResultCard({ result, t }) {
+  const seedPreview = result.seed_text.length > 80
+    ? result.seed_text.slice(0, 80) + '…'
+    : result.seed_text
+
+  return (
+    <div style={{
+      background: '#1a1d27',
+      border: '1px solid #2d3148',
+      borderRadius: '12px',
+      padding: '1.25rem',
+    }}>
+      <div style={{ marginBottom: '0.75rem' }}>
+        <p style={{ color: '#94a3b8', fontSize: '0.72rem', margin: '0 0 0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          {t('multi.seed_resultado', { n: result.seed_index + 1 })}
+        </p>
+        <p style={{ color: '#c7d2fe', fontSize: '0.85rem', margin: 0, lineHeight: 1.4 }}>
+          {seedPreview}
+        </p>
+      </div>
+
+      <div style={{ marginBottom: '0.75rem' }}>
+        <RiskBadge
+          score={result.risk.score}
+          label={result.risk.label}
+          color={result.risk.color}
+        />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+        {[
+          { label: t('multi.pico'), value: `${result.peak_pct}%`, color: '#f87171' },
+          { label: t('multi.alcance'), value: `${result.total_reach_pct}%`, color: '#fbbf24' },
+          { label: t('multi.tempo_pico'), value: `${result.time_to_peak} ${t('multi.ticks')}`, color: '#60a5fa' },
+        ].map(({ label, value, color }) => (
+          <div key={label} style={{
+            background: '#0f1117',
+            borderRadius: '8px',
+            padding: '0.5rem',
+            textAlign: 'center',
+          }}>
+            <div style={{ color, fontSize: '1rem', fontWeight: 700 }}>{value}</div>
+            <div style={{ color: '#64748b', fontSize: '0.68rem', marginTop: '0.2rem' }}>{label}</div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
