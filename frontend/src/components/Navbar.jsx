@@ -9,6 +9,7 @@ export default function Navbar() {
     { to: '/', label: t('nav.painel') },
     { to: '/simulate', label: t('nav.simular') },
     { to: '/compare', label: t('nav.comparar') },
+    { to: '/multi', label: t('nav.multi') },
   ]
 
   return (

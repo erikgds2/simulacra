@@ -6,6 +6,7 @@ import Simulate from './pages/Simulate.jsx'
 import SimulationView from './pages/SimulationView.jsx'
 import Report from './pages/Report.jsx'
 import Compare from './pages/Compare.jsx'
+import MultiSeed from './pages/MultiSeed.jsx'
 import NotFound from './pages/NotFound.jsx'
 import { ToastContainer } from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/simulation/:id" element={<SimulationView />} />
             <Route path="/report/:id" element={<Report />} />
             <Route path="/compare" element={<Compare />} />
+            <Route path="/multi" element={<MultiSeed />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </ErrorBoundary>
