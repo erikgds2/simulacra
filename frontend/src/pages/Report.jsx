@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import { apiFetch } from '../api'
+import BASE_URL from '../api'
 
 /* ─── Print / PDF styles ─────────────────────────────────────────── */
 const PRINT_STYLE = `
@@ -335,6 +336,19 @@ export default function Report() {
               >
                 {copied ? t('report.copiado') : t('report.copiar')}
               </button>
+              <a
+                href={`${BASE_URL}/report/${id}/export/md`}
+                download
+                title={t('export.tooltip_md')}
+                style={{
+                  background: '#0f172a', color: '#94a3b8',
+                  border: '1px solid #1e293b', borderRadius: '7px',
+                  padding: '0.45rem 1rem', cursor: 'pointer', fontSize: '0.85rem',
+                  textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+                }}
+              >
+                {t('export.md')}
+              </a>
               <button
                 type="button"
                 onClick={handlePrint}
