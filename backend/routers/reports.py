@@ -60,3 +60,19 @@ def get_report_by_id(report_id: str):
     if not report:
         raise HTTPException(status_code=404, detail="Relatório não encontrado.")
     return {**report, "cached": True}
+
+
+@router.get("/{report_id}/export/md")
+async def export_report_md(report_id: str):
+    """Export report as Markdown file download."""
+    from database import get_report
+    from fastapi.responses import Response
+    report = get_report(report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Relatório não encontrado")
+    filename = f"simulacra_report_{report_id[:8]}.md"
+    return Response(
+        content=report["markdown"].encode("utf-8"),
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
