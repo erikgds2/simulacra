@@ -165,6 +165,16 @@ export default function SimulationView() {
               {result.risk.description}
             </p>
           </div>
+          {result.region && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fbbf24' }}>
+                {result.region}
+              </div>
+              <div style={{ color: '#94a3b8', fontSize: '0.72rem', marginTop: '0.2rem' }}>
+                {t('report.regiao')}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
