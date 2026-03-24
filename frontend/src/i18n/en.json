@@ -175,5 +175,15 @@
     "moderado": "Moderate",
     "alto": "High",
     "critico": "Critical"
+  },
+  "export": {
+    "csv": "⬇ CSV",
+    "json_download": "⬇ JSON",
+    "seeds_csv": "⬇ Seeds CSV",
+    "md": "⬇ Markdown",
+    "tooltip_csv": "Download ticks as CSV spreadsheet",
+    "tooltip_json": "Download ticks as JSON file",
+    "tooltip_seeds": "Export all collected seeds",
+    "tooltip_md": "Download report as .md file"
   }
 }
