@@ -226,6 +226,32 @@ export default function SimulationView() {
           >
             {t('simulation_view.nova_simulacao')}
           </button>
+          <a
+            href={`${BASE_URL}/simulation/${id}/export?format=csv`}
+            download
+            title={t('export.tooltip_csv')}
+            style={{
+              background: '#081222', color: '#34d399', border: '1px solid #34d39944',
+              borderRadius: '8px', padding: '0.75rem 1.25rem',
+              fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
+              textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+            }}
+          >
+            {t('export.csv')}
+          </a>
+          <a
+            href={`${BASE_URL}/simulation/${id}/export?format=json`}
+            download
+            title={t('export.tooltip_json')}
+            style={{
+              background: '#081222', color: '#60a5fa', border: '1px solid #60a5fa44',
+              borderRadius: '8px', padding: '0.75rem 1.25rem',
+              fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
+              textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+            }}
+          >
+            {t('export.json_download')}
+          </a>
           {reportError && (
             <span style={{ color: '#f87171', fontSize: '0.875rem' }}>
               ⚠ {reportError}
