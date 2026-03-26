@@ -7,6 +7,7 @@ import {
   PointElement, LineElement, Title, Tooltip, Legend,
 } from 'chart.js'
 import PropagationGraph from '../components/PropagationGraph'
+import AlertBanner from '../components/AlertBanner'
 import { apiFetch } from '../api'
 import BASE_URL from '../api'
 import { toast } from '../components/Toast'
@@ -177,6 +178,8 @@ export default function SimulationView() {
           )}
         </div>
       )}
+
+      <AlertBanner />
 
       <div style={{
         background: '#081222',
