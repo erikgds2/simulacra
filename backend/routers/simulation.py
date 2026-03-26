@@ -124,6 +124,33 @@ async def stream_simulation(request: Request, sim_id: str):
                     "total_ticks": len(ticks_data),
                 })
 
+            # Dispara alerta se score ultrapassa threshold configurado
+            try:
+                from agents.alert_manager import send_alert_email
+                from agents.risk_scorer import calculate_risk_score
+                _total_raw = first["S"] + first["E"] + first["I"] + first["R"]
+                _peak = max(ticks_data, key=lambda t: t["I"])
+                _reach = round(((_total_raw - ticks_data[-1]["S"]) / _total_raw), 3)
+                _risk = calculate_risk_score(
+                    num_agents=len(engine.graph.nodes) if hasattr(engine, 'graph') else 200,
+                    peak_infected=_peak["I"],
+                    time_to_peak=_peak["tick"],
+                    total_reach=_reach,
+                    total_ticks=len(ticks_data),
+                    intervention=engine.intervention if hasattr(engine, 'intervention') else None,
+                )
+                _sim_meta = get_simulation(sim_id)
+                _seed_text = _sim_meta.get("seed_text", "") if _sim_meta else ""
+                import asyncio as _asyncio
+                loop = _asyncio.get_event_loop()
+                loop.run_in_executor(
+                    None,
+                    lambda: send_alert_email(sim_id, _seed_text, _risk["score"], _risk["label"])
+                )
+            except Exception as _ae:
+                import logging as _logging
+                _logging.getLogger("simulacra.alerts").warning(f"Erro no alerta: {_ae}")
+
             _engines.pop(sim_id, None)
             yield 'data: {"done": true}\n\n'
         except Exception as e:
