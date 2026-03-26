@@ -185,5 +185,21 @@
     "tooltip_json": "Download ticks as JSON file",
     "tooltip_seeds": "Export all collected seeds",
     "tooltip_md": "Download report as .md file"
+  },
+  "alert": {
+    "titulo": "Email alerts",
+    "subtitulo": "Receive an email when the risk score exceeds the threshold.",
+    "email_label": "Alert email address",
+    "email_placeholder": "your@email.com",
+    "threshold_label": "Score threshold (0–100)",
+    "threshold_hint": "Alerts triggered when score ≥ this value",
+    "botao_salvar": "Save configuration",
+    "botao_desativar": "Disable alert",
+    "salvo": "✓ Alert configured",
+    "desativado": "Alert disabled",
+    "smtp_aviso": "SMTP not configured on server — alerts will not be sent.",
+    "status_ativo": "Alert active",
+    "status_inativo": "No alert configured",
+    "email_invalido": "Invalid email"
   }
 }

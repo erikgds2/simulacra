@@ -185,5 +185,21 @@
     "tooltip_json": "Baixar ticks como arquivo JSON",
     "tooltip_seeds": "Exportar todas as seeds coletadas",
     "tooltip_md": "Baixar relatório como arquivo .md"
+  },
+  "alert": {
+    "titulo": "Alertas por e-mail",
+    "subtitulo": "Receba um e-mail quando o score de risco ultrapassar o limiar.",
+    "email_label": "E-mail para alertas",
+    "email_placeholder": "seu@email.com",
+    "threshold_label": "Limiar de score (0–100)",
+    "threshold_hint": "Alertas disparados quando score ≥ este valor",
+    "botao_salvar": "Salvar configuração",
+    "botao_desativar": "Desativar alerta",
+    "salvo": "✓ Alerta configurado",
+    "desativado": "Alerta desativado",
+    "smtp_aviso": "SMTP não configurado no servidor — alertas não serão enviados.",
+    "status_ativo": "Alerta ativo",
+    "status_inativo": "Sem alerta configurado",
+    "email_invalido": "E-mail inválido"
   }
 }
