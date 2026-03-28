@@ -145,6 +145,7 @@ export default function Dashboard() {
           </p>
         </div>
       ) : (
+        <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {simulations.map(sim => (
             <div
@@ -226,6 +227,7 @@ export default function Dashboard() {
             >{t('dashboard.proxima')} →</button>
           </div>
         )}
+        </>
       )}
     </div>
   )
