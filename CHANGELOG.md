@@ -4,6 +4,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+_Nenhuma mudança pendente._
+
+---
+
 ## [1.1.0] — 2026-03-28
 
 ### Adicionado
