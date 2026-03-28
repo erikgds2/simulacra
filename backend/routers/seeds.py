@@ -202,7 +202,8 @@ async def get_seed(seed_id: str):
 
 
 @router.get("/export/csv")
-async def export_seeds_csv():
+@limiter.limit("5/minute")
+async def export_seeds_csv(request: Request):
     """Export all seeds as CSV file download."""
     from database import list_seeds_from_db
     import io, csv as _csv

@@ -63,7 +63,8 @@ def get_report_by_id(report_id: str):
 
 
 @router.get("/{report_id}/export/md")
-async def export_report_md(report_id: str):
+@limiter.limit("10/minute")
+async def export_report_md(request: Request, report_id: str):
     """Export report as Markdown file download."""
     from database import get_report
     from fastapi.responses import Response
