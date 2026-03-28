@@ -224,6 +224,8 @@ async def get_graph(sim_id: str):
 @router.get("/{sim_id}/export")
 async def export_ticks(sim_id: str, format: str = "csv"):
     """Export simulation ticks as CSV or JSON file download."""
+    if format not in ("csv", "json"):
+        raise HTTPException(status_code=400, detail="Formato inválido. Use 'csv' ou 'json'.")
     sim = get_simulation(sim_id)
     if not sim:
         raise HTTPException(status_code=404, detail="Simulação não encontrada")
@@ -261,7 +263,8 @@ async def export_ticks(sim_id: str, format: str = "csv"):
 
 
 @router.get("/compare-view")
-async def compare_two_simulations(sim_a: str, sim_b: str):
+@limiter.limit("10/minute")
+async def compare_two_simulations(request: Request, sim_a: str, sim_b: str):
     """Retorna dados de duas simulações para exibição lado a lado."""
     sim_a_data = get_simulation(sim_a)
     sim_b_data = get_simulation(sim_b)
