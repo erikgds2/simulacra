@@ -4,6 +4,7 @@
     "simular": "Simular",
     "comparar": "Comparar",
     "multi": "Multi",
+    "comparar_sims": "Comparar Sims",
     "sistema_ativo": "Sistema ativo",
     "beta": "BETA"
   },
@@ -201,5 +202,28 @@
     "status_ativo": "Alerta ativo",
     "status_inativo": "Sem alerta configurado",
     "email_invalido": "E-mail inválido"
+  },
+  "compare_view": {
+    "titulo": "Comparar simulações",
+    "subtitulo": "Selecione duas simulações finalizadas para comparar lado a lado.",
+    "sim_a": "Simulação A",
+    "sim_b": "Simulação B",
+    "selecione": "Selecione uma simulação...",
+    "sem_dados": "Nenhuma simulação finalizada disponível.",
+    "botao_comparar": "Comparar →",
+    "carregando": "Carregando dados...",
+    "grafico_titulo": "Curva SEIR",
+    "metricas_titulo": "Comparativo de métricas",
+    "metrica": "Métrica",
+    "agentes": "Agentes",
+    "pico": "Pico infectados",
+    "alcance": "Alcance total",
+    "tempo_pico": "Tempo ao pico",
+    "score_risco": "Score de risco",
+    "intervencao": "Intervenção",
+    "regiao": "Região",
+    "nenhuma": "Nenhuma",
+    "menor_melhor": "↓ menor = melhor",
+    "toast_ok": "Comparação carregada!"
   }
 }
