@@ -10,6 +10,7 @@ export default function Navbar() {
     { to: '/simulate', label: t('nav.simular') },
     { to: '/compare', label: t('nav.comparar') },
     { to: '/multi', label: t('nav.multi') },
+    { to: '/compare-view', label: t('nav.comparar_sims') },
   ]
 
   return (
