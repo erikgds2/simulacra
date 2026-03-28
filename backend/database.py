@@ -156,12 +156,17 @@ def get_simulation_ticks(sim_id: str) -> list[dict]:
         ]
 
 
-def list_simulations(limit: int = 20) -> list[dict]:
+def list_simulations(limit: int = 20, offset: int = 0) -> list[dict]:
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT * FROM simulations ORDER BY created_at DESC LIMIT ?", (limit,)
+            "SELECT * FROM simulations ORDER BY created_at DESC LIMIT ? OFFSET ?", (limit, offset)
         ).fetchall()
         return [dict(r) for r in rows]
+
+
+def count_simulations() -> int:
+    with get_connection() as conn:
+        return conn.execute("SELECT COUNT(*) FROM simulations").fetchone()[0]
 
 
 def save_seed_to_db(seed: dict) -> bool:
