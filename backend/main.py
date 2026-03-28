@@ -42,7 +42,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 app = FastAPI(
     title="Simulacra API",
-    version="1.0.0",
+    version="1.1.0",
     description="Motor de simulação de comportamento coletivo para o Brasil. Simule propagação de desinformação, teste intervenções e receba relatórios analíticos em português.",
     lifespan=lifespan,
     docs_url="/docs",
@@ -89,7 +89,7 @@ async def health():
     return {
         "status": "ok",
         "app": "Simulacra",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "environment": os.getenv("ENVIRONMENT", "development"),
         "db_path": str(DB_PATH),
         "db_exists": DB_PATH.exists(),
