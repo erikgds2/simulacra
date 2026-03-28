@@ -118,7 +118,75 @@ export default function CompareView() {
         </button>
       </form>
 
-      {comparison && <p style={{ color: '#64748b', textAlign: 'center' }}>{t('compare_view.carregando')}</p>}
+      {comparison && (() => {
+        const maxTick = Math.max(
+          comparison.sim_a.ticks?.length ?? 0,
+          comparison.sim_b.ticks?.length ?? 0
+        )
+
+        function SyncChart({ ticks, title }) {
+          if (!ticks || ticks.length === 0) return null
+          const padded = [...ticks]
+          const last = ticks[ticks.length - 1]
+          while (padded.length < maxTick) {
+            padded.push({ tick: padded.length + 1, S: last.S, E: 0, I: 0, R: last.R })
+          }
+          const labels = padded.map(t => t.tick)
+          const data = {
+            labels,
+            datasets: [
+              { label: 'S', data: padded.map(t => t.S), borderColor: COLORS.S, backgroundColor: COLORS.S + '22', tension: 0.3, pointRadius: 0 },
+              { label: 'E', data: padded.map(t => t.E), borderColor: COLORS.E, backgroundColor: COLORS.E + '22', tension: 0.3, pointRadius: 0 },
+              { label: 'I', data: padded.map(t => t.I), borderColor: COLORS.I, backgroundColor: COLORS.I + '22', tension: 0.3, pointRadius: 0 },
+              { label: 'R', data: padded.map(t => t.R), borderColor: COLORS.R, backgroundColor: COLORS.R + '22', tension: 0.3, pointRadius: 0 },
+            ],
+          }
+          return <Line data={data} options={{
+            responsive: true,
+            animation: { duration: 0 },
+            plugins: {
+              legend: { labels: { color: '#94A3B8', boxWidth: 12, font: { size: 11 } } },
+              title: { display: true, text: title, color: '#c7d2fe', font: { size: 13, weight: '600' } },
+            },
+            scales: {
+              x: { ticks: { color: '#94A3B8', maxTicksLimit: 10 }, grid: { color: '#112236' } },
+              y: { ticks: { color: '#94A3B8' }, grid: { color: '#112236' } },
+            },
+          }} />
+        }
+
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+            {['sim_a', 'sim_b'].map((key, idx) => {
+              const sim = comparison[key]
+              const risk = sim.risk
+              const riskColor = risk ? (RISK_COLORS[risk.label] || '#94a3b8') : '#94a3b8'
+              return (
+                <div key={key} style={{ background: '#0f1117', border: `1px solid ${riskColor}33`, borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <span style={{ color: '#c7d2fe', fontWeight: 700, fontSize: '0.9rem' }}>
+                        {idx === 0 ? t('compare_view.sim_a') : t('compare_view.sim_b')}
+                      </span>
+                      {risk && (
+                        <span style={{ background: riskColor + '22', color: riskColor, border: `1px solid ${riskColor}44`, borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 700 }}>
+                          {risk.score} — {risk.label}
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {(sim.seed_text || '').slice(0, 80)}...
+                    </p>
+                  </div>
+                  <div style={{ background: '#081222', borderRadius: '8px', padding: '0.75rem' }}>
+                    <SyncChart ticks={sim.ticks} title={t('compare_view.grafico_titulo')} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })()}
     </div>
   )
 }
