@@ -187,6 +187,53 @@ export default function CompareView() {
           </div>
         )
       })()}
+
+      {comparison && (() => {
+        function MetricRow({ label, valA, valB, lowerBetter }) {
+          const numA = parseFloat(String(valA).replace('%', ''))
+          const numB = parseFloat(String(valB).replace('%', ''))
+          const bothNumeric = !isNaN(numA) && !isNaN(numB)
+          const aIsBetter = bothNumeric && (lowerBetter ? numA < numB : numA > numB)
+          const bIsBetter = bothNumeric && (lowerBetter ? numB < numA : numB > numA)
+          return (
+            <tr>
+              <td style={{ padding: '0.6rem 0.875rem', color: '#94a3b8', fontSize: '0.82rem', borderBottom: '1px solid #1e2a3a' }}>{label}</td>
+              <td style={{ padding: '0.6rem 0.875rem', fontWeight: 600, color: aIsBetter ? '#34d399' : bIsBetter ? '#f87171' : '#c7d2fe', borderBottom: '1px solid #1e2a3a', textAlign: 'center' }}>{valA}</td>
+              <td style={{ padding: '0.6rem 0.875rem', fontWeight: 600, color: bIsBetter ? '#34d399' : aIsBetter ? '#f87171' : '#c7d2fe', borderBottom: '1px solid #1e2a3a', textAlign: 'center' }}>{valB}</td>
+            </tr>
+          )
+        }
+        const sa = comparison.sim_a
+        const sb = comparison.sim_b
+        return (
+          <div style={{ background: '#1a1d27', border: '1px solid #2d3148', borderRadius: '12px', overflow: 'hidden', marginBottom: '1rem' }}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #2d3148' }}>
+              <h3 style={{ color: '#c7d2fe', margin: 0, fontSize: '1rem' }}>{t('compare_view.metricas_titulo')}</h3>
+              <p style={{ color: '#64748b', fontSize: '0.72rem', margin: '0.25rem 0 0' }}>{t('compare_view.menor_melhor')}</p>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#0f1117' }}>
+                    <th style={{ padding: '0.6rem 0.875rem', color: '#64748b', fontSize: '0.75rem', textAlign: 'left', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('compare_view.metrica')}</th>
+                    <th style={{ padding: '0.6rem 0.875rem', color: '#818cf8', fontSize: '0.75rem', textAlign: 'center', fontWeight: 600 }}>{t('compare_view.sim_a')}</th>
+                    <th style={{ padding: '0.6rem 0.875rem', color: '#34d399', fontSize: '0.75rem', textAlign: 'center', fontWeight: 600 }}>{t('compare_view.sim_b')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <MetricRow label={t('compare_view.agentes')} valA={sa.num_agents} valB={sb.num_agents} lowerBetter={false} />
+                  <MetricRow label={t('compare_view.pico')} valA={sa.peak_infected ?? '—'} valB={sb.peak_infected ?? '—'} lowerBetter={true} />
+                  <MetricRow label={t('compare_view.alcance')} valA={sa.total_reach != null ? `${(sa.total_reach*100).toFixed(1)}%` : '—'} valB={sb.total_reach != null ? `${(sb.total_reach*100).toFixed(1)}%` : '—'} lowerBetter={true} />
+                  <MetricRow label={t('compare_view.tempo_pico')} valA={sa.time_to_peak ?? '—'} valB={sb.time_to_peak ?? '—'} lowerBetter={true} />
+                  <MetricRow label={t('compare_view.score_risco')} valA={sa.risk?.score ?? '—'} valB={sb.risk?.score ?? '—'} lowerBetter={true} />
+                  <MetricRow label={t('compare_view.intervencao')} valA={sa.intervention || t('compare_view.nenhuma')} valB={sb.intervention || t('compare_view.nenhuma')} lowerBetter={false} />
+                  <MetricRow label={t('compare_view.regiao')} valA={sa.region || '—'} valB={sb.region || '—'} lowerBetter={false} />
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
