@@ -1,3 +1,4 @@
+/** @module CompareView — dashboard comparativo side-by-side */
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Line } from 'react-chartjs-2'
