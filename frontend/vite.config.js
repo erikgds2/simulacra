@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => {
             vendor: ['react', 'react-dom', 'react-router-dom'],
             charts: ['chart.js', 'react-chartjs-2'],
             d3: ['d3'],
+            i18n: ['i18next', 'react-i18next'],
+            markdown: ['react-markdown'],
           },
         },
       },
