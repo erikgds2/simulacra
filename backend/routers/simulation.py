@@ -239,6 +239,40 @@ async def export_ticks(sim_id: str, format: str = "csv"):
         )
 
 
+@router.get("/compare-view")
+async def compare_two_simulations(sim_a: str, sim_b: str):
+    """Retorna dados de duas simulações para exibição lado a lado."""
+    sim_a_data = get_simulation(sim_a)
+    sim_b_data = get_simulation(sim_b)
+
+    if not sim_a_data:
+        raise HTTPException(status_code=404, detail=f"Simulação A não encontrada")
+    if not sim_b_data:
+        raise HTTPException(status_code=404, detail=f"Simulação B não encontrada")
+
+    ticks_a = get_simulation_ticks(sim_a)
+    ticks_b = get_simulation_ticks(sim_b)
+
+    from agents.risk_scorer import calculate_risk_score
+
+    def _risk(sim, ticks):
+        if not ticks or sim.get("status") != "finished":
+            return None
+        return calculate_risk_score(
+            num_agents=sim["num_agents"],
+            peak_infected=sim.get("peak_infected") or 0,
+            time_to_peak=sim.get("time_to_peak") or 1,
+            total_reach=sim.get("total_reach") or 0.0,
+            total_ticks=sim.get("total_ticks") or 1,
+            intervention=sim.get("intervention"),
+        )
+
+    return {
+        "sim_a": {**sim_a_data, "ticks": ticks_a, "risk": _risk(sim_a_data, ticks_a)},
+        "sim_b": {**sim_b_data, "ticks": ticks_b, "risk": _risk(sim_b_data, ticks_b)},
+    }
+
+
 class CompareRequest(BaseModel):
     seed_text: str
     num_agents: int = 200
