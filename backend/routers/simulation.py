@@ -13,6 +13,7 @@ from slowapi.util import get_remote_address
 
 from agents.simulation_engine import SimulationEngine
 from database import (
+    count_simulations,
     finish_simulation,
     get_simulation,
     get_simulation_ticks,
@@ -78,8 +79,20 @@ async def start_simulation(request: Request, req: StartRequest):
 
 
 @router.get("/list")
-async def list_all(limit: int = 20):
-    return {"simulations": list_simulations(limit=limit)}
+async def list_all(limit: int = 20, offset: int = 0):
+    from agents.cache import cache_get, cache_set
+    cache_key = f"sim_list:{limit}:{offset}"
+    cached = cache_get(cache_key)
+    if cached is not None:
+        return cached
+    sims = list_simulations(limit=limit, offset=offset)
+    total = count_simulations()
+    result = {"simulations": sims, "total": total, "limit": limit, "offset": offset}
+    cache_set(cache_key, result, ttl=15)
+    from fastapi.responses import JSONResponse
+    response = JSONResponse(content=result)
+    response.headers["Cache-Control"] = "public, max-age=15"
+    return response
 
 
 @router.get("/{sim_id}/stream")
@@ -165,6 +178,12 @@ async def stream_simulation(request: Request, sim_id: str):
 
 @router.get("/{sim_id}/result")
 async def get_result(sim_id: str):
+    from agents.cache import cache_get, cache_set
+    cache_key = f"sim_result:{sim_id}"
+    cached = cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     sim = get_simulation(sim_id)
     if not sim:
         raise HTTPException(status_code=404, detail="Simulação não encontrada")
@@ -182,7 +201,9 @@ async def get_result(sim_id: str):
     )
     risk["description"] = risk_label_description(risk["label"])
 
-    return {**sim, "risk": risk}
+    result = {**sim, "risk": risk}
+    cache_set(cache_key, result, ttl=60)
+    return result
 
 
 @router.get("/{sim_id}/graph")
