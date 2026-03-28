@@ -85,6 +85,7 @@ async def security_headers(request: Request, call_next):
 @app.get("/health", tags=["infra"])
 async def health():
     from database import DB_PATH
+    from agents.cache import cache_stats
     return {
         "status": "ok",
         "app": "Simulacra",
@@ -92,6 +93,7 @@ async def health():
         "environment": os.getenv("ENVIRONMENT", "development"),
         "db_path": str(DB_PATH),
         "db_exists": DB_PATH.exists(),
+        "cache": cache_stats(),
     }
 
 
