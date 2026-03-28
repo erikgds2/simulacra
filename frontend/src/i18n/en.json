@@ -28,7 +28,9 @@
     "card_fontes_texto": "Seeds collected from Agência Lupa and Aos Fatos — Brazilian fact-checking organizations.",
     "card_intervencoes_titulo": "Interventions",
     "card_intervencoes_texto": "Test 4 strategies: fact-check, removal, counter-narrative and label warning.",
-    "erro_conexao": "Could not connect to the server. Check if the backend is running."
+    "erro_conexao": "Could not connect to the server. Check if the backend is running.",
+    "anterior": "Previous",
+    "proxima": "Next"
   },
   "simulate": {
     "titulo": "New simulation",

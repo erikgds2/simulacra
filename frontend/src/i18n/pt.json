@@ -28,7 +28,9 @@
     "card_fontes_texto": "Seeds coletadas da Agência Lupa e Aos Fatos — bases de verificação de fatos do Brasil.",
     "card_intervencoes_titulo": "Intervenções",
     "card_intervencoes_texto": "Teste 4 estratégias: fact-check, remoção, contra-narrativa e aviso de rótulo.",
-    "erro_conexao": "Não foi possível conectar ao servidor. Verifique se o backend está rodando."
+    "erro_conexao": "Não foi possível conectar ao servidor. Verifique se o backend está rodando.",
+    "anterior": "Anterior",
+    "proxima": "Próxima"
   },
   "simulate": {
     "titulo": "Nova simulação",

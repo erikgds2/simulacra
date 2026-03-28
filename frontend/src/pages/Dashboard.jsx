@@ -21,12 +21,16 @@ function formatDate(iso) {
   })
 }
 
+const PAGE_SIZE = 10
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [simulations, setSimulations] = useState([])
   const [loading, setLoading] = useState(true)
   const [apiOnline, setApiOnline] = useState(null)
+  const [page, setPage] = useState(0)
+  const [total, setTotal] = useState(0)
 
   const infoCards = [
     { title: t('dashboard.card_como_funciona_titulo'), text: t('dashboard.card_como_funciona_texto') },
@@ -45,10 +49,11 @@ export default function Dashboard() {
       try {
         const health = await apiFetch('/health')
         setApiOnline(health.ok)
-        const r = await apiFetch('/simulation/list?limit=10')
+        const r = await apiFetch(`/simulation/list?limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`)
         if (r.ok) {
           const d = await r.json()
           setSimulations(d.simulations || [])
+          setTotal(d.total || 0)
         }
       } catch {
         setApiOnline(false)
@@ -58,7 +63,7 @@ export default function Dashboard() {
       }
     }
     load()
-  }, [])
+  }, [page])
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: 'clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)' }}>
@@ -193,6 +198,34 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
+        {total > PAGE_SIZE && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+            <button
+              type="button"
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              style={{
+                background: page === 0 ? '#0f1117' : '#1a1d27', color: page === 0 ? '#334155' : '#c7d2fe',
+                border: '1px solid #2d3148', borderRadius: '7px', padding: '0.4rem 1rem',
+                fontSize: '0.85rem', cursor: page === 0 ? 'not-allowed' : 'pointer',
+              }}
+            >← {t('dashboard.anterior')}</button>
+            <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+              {page + 1} / {Math.ceil(total / PAGE_SIZE)}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage(p => p + 1)}
+              disabled={(page + 1) * PAGE_SIZE >= total}
+              style={{
+                background: (page + 1) * PAGE_SIZE >= total ? '#0f1117' : '#1a1d27',
+                color: (page + 1) * PAGE_SIZE >= total ? '#334155' : '#c7d2fe',
+                border: '1px solid #2d3148', borderRadius: '7px', padding: '0.4rem 1rem',
+                fontSize: '0.85rem', cursor: (page + 1) * PAGE_SIZE >= total ? 'not-allowed' : 'pointer',
+              }}
+            >{t('dashboard.proxima')} →</button>
+          </div>
+        )}
       )}
     </div>
   )
