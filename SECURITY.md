@@ -14,6 +14,21 @@
 | `ALLOWED_ORIGINS` | Origens CORS permitidas | Não (default: localhost) |
 | `TWITTER_BEARER_TOKEN` | Token Twitter/X | Não |
 
+## Variáveis de ambiente sensíveis
+
+As seguintes variáveis de ambiente contêm dados sensíveis e NUNCA devem ser commitadas no repositório:
+
+| Variável | Uso |
+|----------|-----|
+| `ANTHROPIC_API_KEY` | Geração de relatórios com Claude |
+| `SMTP_HOST` | Servidor SMTP para alertas |
+| `SMTP_USER` | Usuário SMTP |
+| `SMTP_PASS` | Senha SMTP |
+| `SMTP_FROM` | Endereço de envio (opcional) |
+| `SMTP_PORT` | Porta SMTP (padrão: 587) |
+
+Configure estas variáveis no painel do seu serviço de deploy (Render, Railway, etc.) ou em um arquivo `.env` local **que nunca deve ser commitado**.
+
 ## Limites de rate
 
 | Endpoint | Limite |
