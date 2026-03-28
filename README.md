@@ -55,6 +55,11 @@ Simulacra é um motor open source de simulação de comportamento coletivo. Voc�
 - **Score de risco 0-100** — Baixo / Moderado / Alto / Crítico com descrição acionável
 - **Comparação de intervenções** — 5 cenários rodados em paralelo, ordenados por eficácia
 - **Relatório em português** — análise gerada por IA com recomendações práticas
+- **Perfis regionais** — multiplicadores de propagação por região (SP, NE, SUL, CO, N, RJ) baseados em infraestrutura digital
+- **Multi-seed** — rode até 5 notícias em paralelo e compare os resultados lado a lado
+- **Export de dados** — ticks em CSV/JSON, seeds e relatórios em Markdown para análise externa
+- **Alertas por e-mail** — configura limiar de score de risco e recebe notificações automáticas via SMTP
+- **Dashboard comparativo** — selecione 2 simulações finalizadas e compare gráficos SEIR sincronizados
 
 ---
 
@@ -148,9 +153,17 @@ POST /simulation/start          Inicia simulação individual
 GET  /simulation/{id}/stream    SSE — ticks SEIR em tempo real
 GET  /simulation/{id}/result    Resultado com score de risco
 POST /simulation/compare        Compara todas as intervenções em paralelo
+POST /simulation/multi          Simulação paralela de até 5 seeds
+GET  /simulation/compare-view   Dados de 2 simulações para comparação
+GET  /simulation/{id}/export    Ticks em CSV ou JSON
 POST /seeds/collect             Coleta seeds RSS da Lupa e AosFatos
 GET  /seeds/db/list             Lista seeds coletadas
+GET  /seeds/export/csv          Seeds em CSV
 POST /report/generate           Gera relatório IA em português
+GET  /report/{id}/export/md     Relatório em Markdown
+POST /alerts/config             Configura alerta por e-mail
+GET  /alerts/config             Consulta configuração de alerta
+DELETE /alerts/config           Desativa alerta
 GET  /health                    Status da API
 ```
 
