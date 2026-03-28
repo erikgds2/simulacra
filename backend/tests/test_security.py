@@ -53,7 +53,7 @@ def test_simulation_xss_sanitization():
 
 
 def test_simulation_not_found():
-    r = client.get("/simulation/id-que-nao-existe/result")
+    r = client.get("/simulation/00000000-0000-0000-0000-000000000000/result")
     assert r.status_code == 404
 
 
