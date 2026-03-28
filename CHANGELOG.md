@@ -4,14 +4,30 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
-## [Unreleased] — Dias 14–18
+## [1.1.0] — 2026-03-28
 
 ### Adicionado
-- **Dia 14**: Perfis regionais brasileiros com multiplicadores de beta (SP +20%, NE +35%, SUL -15%, CO base, N +10%, RJ +15%)
-- **Dia 15**: Simulação paralela multi-seed — `POST /simulation/multi`, até 5 seeds simultâneas com `asyncio.gather`
-- **Dia 16**: Export de dados — ticks em CSV/JSON, seeds em CSV, relatório em `.md`
-- **Dia 17**: Alertas por e-mail — limiar de score configurável, SMTP via variáveis de ambiente
-- **Dia 18**: Dashboard comparativo side-by-side — seleciona 2 simulações, gráficos SEIR sincronizados, tabela de métricas diff
+- **Dia 14** — Perfis regionais brasileiros: multiplicadores de beta por região (SP +20%, NE +35%, SUL −15%, CO base, N +10%, RJ +15%) com `RegionSelector.jsx` no frontend
+- **Dia 15** — Simulação paralela multi-seed: `POST /simulation/multi`, até 5 seeds simultâneas com `asyncio.gather + run_in_executor`, página `MultiSeed.jsx`
+- **Dia 16** — Export de dados: `GET /simulation/{id}/export?format=csv|json`, `GET /seeds/export/csv`, `GET /report/{id}/export/md`, botões de download no frontend
+- **Dia 17** — Alertas por e-mail: `POST /alerts/config`, `GET /alerts/config`, `DELETE /alerts/config`, `alert_manager.py` (SMTP via env vars, config em memória), `AlertBanner.jsx`
+- **Dia 18** — Dashboard comparativo side-by-side: `GET /simulation/compare-view`, `CompareView.jsx` com gráficos SEIR sincronizados e tabela de métricas diff
+- **Dia 19** — Performance: `cache.py` TTL in-memory, paginação do histórico com offset, `React.lazy` + `Suspense` em todas as páginas, bundle splitting aprimorado (i18n + markdown em chunks separados)
+- **Dia 20** — Auditoria de segurança: UUID validation em todos os endpoints, rate limits nos exports, validação de `format` param, 8 novos testes de segurança
+
+### Segurança
+- UUID validation helper `_validate_sim_id` aplicado a todos os endpoints que recebem IDs
+- Rate limits adicionados em `/simulation/compare-view` (10/min), `/seeds/export/csv` (5/min), `/report/{id}/export/md` (10/min)
+- Validação de whitelist no parâmetro `format` do endpoint de export
+
+### Performance
+- Cache TTL in-memory para `/simulation/list` (15s) e `/simulation/{id}/result` (60s)
+- Paginação com `OFFSET` no banco para histórico de simulações
+- Lazy loading de todas as páginas React com `React.lazy` e `Suspense`
+- Bundle splitting: chunks separados para i18n, markdown, charts, d3, vendor
+
+### Testes
+- **118 testes passando** (suite completa)
 
 ---
 
