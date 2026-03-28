@@ -4,6 +4,17 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [Unreleased] — Dias 14–18
+
+### Adicionado
+- **Dia 14**: Perfis regionais brasileiros com multiplicadores de beta (SP +20%, NE +35%, SUL -15%, CO base, N +10%, RJ +15%)
+- **Dia 15**: Simulação paralela multi-seed — `POST /simulation/multi`, até 5 seeds simultâneas com `asyncio.gather`
+- **Dia 16**: Export de dados — ticks em CSV/JSON, seeds em CSV, relatório em `.md`
+- **Dia 17**: Alertas por e-mail — limiar de score configurável, SMTP via variáveis de ambiente
+- **Dia 18**: Dashboard comparativo side-by-side — seleciona 2 simulações, gráficos SEIR sincronizados, tabela de métricas diff
+
+---
+
 ## [1.0.0] — 2026-03-22
 
 ### Adicionado
