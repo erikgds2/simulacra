@@ -25,6 +25,16 @@ from database import (
 router = APIRouter(prefix="/simulation", tags=["simulation"])
 limiter = Limiter(key_func=get_remote_address)
 
+import re as _re
+_UUID_RE = _re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+)
+
+def _validate_sim_id(sim_id: str) -> None:
+    """Rejeita IDs que não são UUIDs válidos antes de acessar o banco."""
+    if not _UUID_RE.match(sim_id.lower()):
+        raise HTTPException(status_code=400, detail="ID de simulação inválido.")
+
 _engines: dict = {}
 
 
@@ -98,6 +108,7 @@ async def list_all(limit: int = 20, offset: int = 0):
 @router.get("/{sim_id}/stream")
 @limiter.limit("20/minute")
 async def stream_simulation(request: Request, sim_id: str):
+    _validate_sim_id(sim_id)
     sim = get_simulation(sim_id)
     if not sim:
         raise HTTPException(status_code=404, detail="Simulacao nao encontrada")
@@ -178,6 +189,7 @@ async def stream_simulation(request: Request, sim_id: str):
 
 @router.get("/{sim_id}/result")
 async def get_result(sim_id: str):
+    _validate_sim_id(sim_id)
     from agents.cache import cache_get, cache_set
     cache_key = f"sim_result:{sim_id}"
     cached = cache_get(cache_key)
@@ -208,6 +220,7 @@ async def get_result(sim_id: str):
 
 @router.get("/{sim_id}/graph")
 async def get_graph(sim_id: str):
+    _validate_sim_id(sim_id)
     sim = get_simulation(sim_id)
     if not sim:
         raise HTTPException(status_code=404, detail="Simulacao nao encontrada")
@@ -224,6 +237,7 @@ async def get_graph(sim_id: str):
 @router.get("/{sim_id}/export")
 async def export_ticks(sim_id: str, format: str = "csv"):
     """Export simulation ticks as CSV or JSON file download."""
+    _validate_sim_id(sim_id)
     if format not in ("csv", "json"):
         raise HTTPException(status_code=400, detail="Formato inválido. Use 'csv' ou 'json'.")
     sim = get_simulation(sim_id)
@@ -266,6 +280,8 @@ async def export_ticks(sim_id: str, format: str = "csv"):
 @limiter.limit("10/minute")
 async def compare_two_simulations(request: Request, sim_a: str, sim_b: str):
     """Retorna dados de duas simulações para exibição lado a lado."""
+    _validate_sim_id(sim_a)
+    _validate_sim_id(sim_b)
     sim_a_data = get_simulation(sim_a)
     sim_b_data = get_simulation(sim_b)
 
