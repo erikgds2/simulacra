@@ -76,6 +76,12 @@ class StartRequest(BaseModel):
 @router.post("/start")
 @limiter.limit("10/minute")
 async def start_simulation(request: Request, req: StartRequest):
+    # Fix 5: Prevent unbounded _engines dict memory DoS
+    if len(_engines) >= 100:
+        raise HTTPException(
+            status_code=503,
+            detail="Servidor ocupado: muitas simulações em andamento. Tente novamente em instantes.",
+        )
     sim_id = str(uuid.uuid4())
     engine = SimulationEngine(
         num_agents=req.num_agents,
@@ -89,7 +95,8 @@ async def start_simulation(request: Request, req: StartRequest):
 
 
 @router.get("/list")
-async def list_all(limit: int = 20, offset: int = 0):
+@limiter.limit("30/minute")
+async def list_all(request: Request, limit: int = 20, offset: int = 0):
     from agents.cache import cache_get, cache_set
     cache_key = f"sim_list:{limit}:{offset}"
     cached = cache_get(cache_key)
@@ -188,7 +195,8 @@ async def stream_simulation(request: Request, sim_id: str):
 
 
 @router.get("/{sim_id}/result")
-async def get_result(sim_id: str):
+@limiter.limit("30/minute")
+async def get_result(request: Request, sim_id: str):
     _validate_sim_id(sim_id)
     from agents.cache import cache_get, cache_set
     cache_key = f"sim_result:{sim_id}"
@@ -219,7 +227,8 @@ async def get_result(sim_id: str):
 
 
 @router.get("/{sim_id}/graph")
-async def get_graph(sim_id: str):
+@limiter.limit("30/minute")
+async def get_graph(request: Request, sim_id: str):
     _validate_sim_id(sim_id)
     sim = get_simulation(sim_id)
     if not sim:
@@ -235,7 +244,8 @@ async def get_graph(sim_id: str):
 
 
 @router.get("/{sim_id}/heatmap")
-async def get_heatmap(sim_id: str):
+@limiter.limit("20/minute")
+async def get_heatmap(request: Request, sim_id: str):
     """Retorna scores de risco por região brasileira para o mapa coroplético."""
     _validate_sim_id(sim_id)
     sim = get_simulation(sim_id)
@@ -295,7 +305,8 @@ async def get_heatmap(sim_id: str):
 
 
 @router.get("/{sim_id}/export")
-async def export_ticks(sim_id: str, format: str = "csv"):
+@limiter.limit("10/minute")
+async def export_ticks(request: Request, sim_id: str, format: str = "csv"):
     """Export simulation ticks as CSV or JSON file download."""
     _validate_sim_id(sim_id)
     if format not in ("csv", "json"):
@@ -497,6 +508,12 @@ async def multi_seed_simulation(request: Request, req: MultiSeedRequest):
     Roda a mesma configuração com múltiplas seeds em paralelo (thread pool).
     Retorna métricas e score de risco para cada seed.
     """
+    # Fix 7: Prevent DoS via large seeds × agents product
+    if req.num_agents * len(req.seeds) > 600:
+        raise HTTPException(
+            status_code=400,
+            detail="Produto de seeds × agentes excede o limite de 600. Reduza num_agents ou o número de seeds.",
+        )
     loop = asyncio.get_event_loop()
 
     tasks = [

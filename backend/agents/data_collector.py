@@ -1,3 +1,4 @@
+import bleach
 import feedparser
 import httpx
 import logging
@@ -12,6 +13,11 @@ RSS_FEEDS = {
 
 TIMEOUT_SEGUNDOS = 15.0
 MAX_SEEDS_POR_FONTE = 10
+
+
+def _sanitize_text(text: str) -> str:
+    """Strip all HTML tags from RSS feed content using bleach."""
+    return bleach.clean(text, tags=[], strip=True).strip()
 
 
 async def collect_seeds(limit: int = 10) -> List[Dict[str, Any]]:
@@ -38,10 +44,11 @@ async def collect_seeds(limit: int = 10) -> List[Dict[str, Any]]:
                     continue
 
                 for entry in feed.entries[:MAX_SEEDS_POR_FONTE]:
+                    # Fix 12: Sanitize all text from RSS feed with bleach
                     results.append({
                         "source": source_name,
-                        "title": entry.get("title", "").strip(),
-                        "summary": entry.get("summary", "").strip(),
+                        "title": _sanitize_text(entry.get("title", "")),
+                        "summary": _sanitize_text(entry.get("summary", "")),
                         "link": entry.get("link", ""),
                         "published": entry.get("published", ""),
                     })

@@ -43,7 +43,8 @@ def create_report(request: Request, body: GenerateReportRequest):
 
 
 @router.get("/by-simulation/{sim_id}")
-def get_report_by_sim(sim_id: str):
+@limiter.limit("20/minute")
+def get_report_by_sim(request: Request, sim_id: str):
     """Retorna o relatório de uma simulação, se já gerado."""
     report = get_report_by_simulation(sim_id)
     if not report:
@@ -54,7 +55,8 @@ def get_report_by_sim(sim_id: str):
 
 
 @router.get("/{report_id}")
-def get_report_by_id(report_id: str):
+@limiter.limit("20/minute")
+def get_report_by_id(request: Request, report_id: str):
     """Retorna um relatório pelo seu ID."""
     report = get_report(report_id)
     if not report:
