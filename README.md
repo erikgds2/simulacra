@@ -12,7 +12,7 @@
 > Simule como informações se propagam em redes sociais, teste intervenções e receba relatórios analíticos em português gerados por IA.
 
 **Demo:** https://erikgds2.github.io/simulacra/
-**API:** https://simulacra-api.onrender.com/docs
+**API:** https://desinfolab.onrender.com/docs
 
 ---
 
@@ -167,7 +167,7 @@ DELETE /alerts/config           Desativa alerta
 GET  /health                    Status da API
 ```
 
-Documentação completa: https://simulacra-api.onrender.com/docs
+Documentação completa: https://desinfolab.onrender.com/docs
 
 ---
 
