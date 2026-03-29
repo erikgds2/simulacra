@@ -6,6 +6,7 @@ Credenciais SMTP exclusivamente via variáveis de ambiente:
 A configuração de alerta (threshold + email) é mantida em memória
 (nunca persistida em banco) para proteger dados sensíveis.
 """
+import html
 import logging
 import os
 import re
@@ -80,18 +81,25 @@ def send_alert_email(sim_id: str, seed_text: str, risk_score: int, risk_label: s
     password = os.getenv("SMTP_PASS", "")
     sender = os.getenv("SMTP_FROM", user)
 
+    # Fix 8: Sanitize seed_text before embedding in HTML email
+    safe_seed = html.escape(seed_text[:200], quote=True)
+    safe_sim_id = html.escape(sim_id[:12], quote=True)
+    safe_risk_label = html.escape(str(risk_label), quote=True)
+    safe_risk_score = int(risk_score)  # ensure numeric
+    safe_threshold = int(_config['threshold'])
+
     subject = f"[Simulacra] Alerta de risco {risk_label} (score {risk_score})"
     body_html = f"""
 <html><body style="font-family:sans-serif;color:#1a1a1a;max-width:600px;margin:0 auto">
-<h2 style="color:#dc2626">⚠️ Alerta de desinformação — Score {risk_score} ({risk_label})</h2>
-<p>Uma simulação ultrapassou o limiar de risco configurado ({_config['threshold']}).</p>
+<h2 style="color:#dc2626">Alerta de desinformacao - Score {safe_risk_score} ({safe_risk_label})</h2>
+<p>Uma simulacao ultrapassou o limiar de risco configurado ({safe_threshold}).</p>
 <table style="border-collapse:collapse;width:100%">
-  <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600">Simulação</td>
-      <td style="padding:8px;border:1px solid #e5e7eb">{sim_id[:12]}...</td></tr>
+  <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600">Simulacao</td>
+      <td style="padding:8px;border:1px solid #e5e7eb">{safe_sim_id}...</td></tr>
   <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600">Score de risco</td>
-      <td style="padding:8px;border:1px solid #e5e7eb;color:#dc2626;font-weight:700">{risk_score} / 100 — {risk_label}</td></tr>
+      <td style="padding:8px;border:1px solid #e5e7eb;color:#dc2626;font-weight:700">{safe_risk_score} / 100 - {safe_risk_label}</td></tr>
   <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600">Seed</td>
-      <td style="padding:8px;border:1px solid #e5e7eb">{seed_text[:200]}</td></tr>
+      <td style="padding:8px;border:1px solid #e5e7eb">{safe_seed}</td></tr>
 </table>
 <p style="margin-top:24px;color:#6b7280;font-size:12px">
   Enviado por Simulacra · <a href="https://github.com/erikgds2/simulacra">github.com/erikgds2/simulacra</a>

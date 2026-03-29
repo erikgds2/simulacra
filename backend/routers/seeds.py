@@ -171,7 +171,8 @@ async def collect_seeds(request: Request):
 
 
 @router.get("/db/list")
-async def list_seeds_db(limit: int = 50, offset: int = 0):
+@limiter.limit("30/minute")
+async def list_seeds_db(request: Request, limit: int = 50, offset: int = 0):
     from database import list_seeds_from_db, count_seeds
     if limit > 100:
         raise HTTPException(status_code=400, detail="limit maximo e 100")
@@ -182,7 +183,8 @@ async def list_seeds_db(limit: int = 50, offset: int = 0):
 
 
 @router.get("/")
-async def list_seeds(limit: int = 20, offset: int = 0):
+@limiter.limit("30/minute")
+async def list_seeds(request: Request, limit: int = 20, offset: int = 0):
     if limit > 100:
         raise HTTPException(status_code=400, detail="limit máximo é 100")
     index = _load_index()
@@ -194,8 +196,18 @@ async def list_seeds(limit: int = 20, offset: int = 0):
 
 
 @router.get("/{seed_id}")
-async def get_seed(seed_id: str):
+@limiter.limit("30/minute")
+async def get_seed(request: Request, seed_id: str):
+    import re as _re
+    # Fix: Prevent path traversal — only allow safe alphanumeric UUIDs
+    if not _re.match(r'^[a-zA-Z0-9\-]{1,64}$', seed_id):
+        raise HTTPException(status_code=400, detail="seed_id inválido.")
     file_path = NORMALIZED_DIR / f"{seed_id}.json"
+    # Extra safety: ensure resolved path stays within NORMALIZED_DIR
+    try:
+        file_path.resolve().relative_to(NORMALIZED_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="seed_id inválido.")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Seed não encontrada")
     return json.loads(file_path.read_text(encoding="utf-8"))
@@ -231,7 +243,8 @@ async def export_seeds_csv(request: Request):
 
 
 @router.post("/translate", tags=["seeds"])
-async def translate_seed(body: dict):
+@limiter.limit("5/minute")
+async def translate_seed(request: Request, body: dict):
     """Traduz título e conteúdo de uma seed para PT-BR usando Claude API."""
     import os
     import anthropic

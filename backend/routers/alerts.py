@@ -37,12 +37,14 @@ def configure_alert(request: Request, body: AlertConfigRequest):
 
 
 @router.get("/config")
+@limiter.limit("20/minute")
 def get_config(request: Request):
     """Retorna a configuração atual de alertas (sem credenciais SMTP)."""
     return get_alert_config()
 
 
 @router.delete("/config")
+@limiter.limit("10/minute")
 def delete_config(request: Request):
     """Desativa os alertas."""
     disable_alert()
