@@ -8,14 +8,22 @@ import BASE_URL from '../api'
 /* ─── Print / PDF styles ─────────────────────────────────────────── */
 const PRINT_STYLE = `
 @media print {
-  body { background: #fff !important; }
+  body { background: #fff !important; color: #111 !important; }
   .no-print { display: none !important; }
-  .report-shell { padding: 0 !important; max-width: 100% !important; }
+
+  .report-shell {
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
   .report-card {
     background: #fff !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .report-header {
     background: #fff !important;
@@ -23,6 +31,8 @@ const PRINT_STYLE = `
     border-radius: 8px !important;
     margin-bottom: 24px !important;
     page-break-inside: avoid !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .metric-card {
     border: 1px solid #d1d5db !important;
@@ -32,9 +42,52 @@ const PRINT_STYLE = `
     border: 1px solid #d1d5db !important;
     background: #f9fafb !important;
   }
+
+  /* Prevent text overflow — core fix */
+  * {
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+  }
+
+  /* Code blocks: wrap long lines instead of clipping */
+  pre, code {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Tables: fixed layout so columns don't overflow */
+  table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    page-break-inside: avoid !important;
+    border-collapse: collapse !important;
+  }
+  td, th {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* Images */
+  img { max-width: 100% !important; height: auto !important; }
+
+  /* Headings and paragraphs */
   h1, h2, h3 { page-break-after: avoid !important; }
-  p, li { page-break-inside: avoid !important; }
-  table { page-break-inside: avoid !important; }
+  p, li { page-break-inside: avoid !important; line-height: 1.6 !important; }
+
+  /* Metric cards grid: collapse to 2 cols max in print */
+  .metric-cards-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
   @page {
     margin: 2cm 2.5cm;
     size: A4 portrait;
@@ -441,7 +494,7 @@ export default function Report() {
                 </div>
 
                 {/* Metric cards */}
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                <div className="metric-cards-row" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   <MetricCard
                     label={t('report.agentes')}
                     value={sim.num_agents}
