@@ -53,8 +53,11 @@ Simulacra é um motor open source de simulação de comportamento coletivo. Voc�
 - **Curva SEIR ao vivo** — Suscetíveis, Expostos, Infectados, Recuperados em tempo real
 - **Grafo de propagação** — visualização D3 da rede com nós coloridos por estado
 - **Score de risco 0-100** — Baixo / Moderado / Alto / Crítico com descrição acionável
+- **Mapa coroplético interativo** — heatmap D3 do Brasil com score de risco por região, tooltip e ranking lateral
+- **Replay cinemático** — scrubber frame a frame com play/pause, velocidades 0.5x–4x e botão "Ir ao Pico"
 - **Comparação de intervenções** — 5 cenários rodados em paralelo, ordenados por eficácia
-- **Relatório em português** — análise gerada por IA com recomendações práticas
+- **Relatório padrão (Haiku)** — análise gerada por IA com recomendações práticas em português
+- **Relatório avançado (Sonnet + web_search)** — Claude Sonnet 4.6 com busca na web para contexto real e fontes atualizadas
 - **Perfis regionais** — multiplicadores de propagação por região (SP, NE, SUL, CO, N, RJ) baseados em infraestrutura digital
 - **Multi-seed** — rode até 5 notícias em paralelo e compare os resultados lado a lado
 - **Export de dados** — ticks em CSV/JSON, seeds e relatórios em Markdown para análise externa
@@ -106,7 +109,7 @@ O motor usa o modelo epidemiológico SEIR em grafos Barabási-Albert — a mesma
 |---|---|
 | Backend | Python 3.11 + FastAPI |
 | Simulação | NetworkX + NumPy |
-| IA | Claude API (claude-haiku-4-5) |
+| IA | Claude API (Haiku 4.5 · Sonnet 4.6) |
 | Banco | SQLite |
 | Frontend | React 18 + Vite |
 | Visualização | D3.js + Chart.js |
@@ -149,22 +152,25 @@ python -m pytest tests/ -v
 ## API — Endpoints principais
 
 ```
-POST /simulation/start          Inicia simulação individual
-GET  /simulation/{id}/stream    SSE — ticks SEIR em tempo real
-GET  /simulation/{id}/result    Resultado com score de risco
-POST /simulation/compare        Compara todas as intervenções em paralelo
-POST /simulation/multi          Simulação paralela de até 5 seeds
-GET  /simulation/compare-view   Dados de 2 simulações para comparação
-GET  /simulation/{id}/export    Ticks em CSV ou JSON
-POST /seeds/collect             Coleta seeds RSS da Lupa e AosFatos
-GET  /seeds/db/list             Lista seeds coletadas
-GET  /seeds/export/csv          Seeds em CSV
-POST /report/generate           Gera relatório IA em português
-GET  /report/{id}/export/md     Relatório em Markdown
-POST /alerts/config             Configura alerta por e-mail
-GET  /alerts/config             Consulta configuração de alerta
-DELETE /alerts/config           Desativa alerta
-GET  /health                    Status da API
+POST /simulation/start              Inicia simulação individual
+GET  /simulation/{id}/stream        SSE — ticks SEIR em tempo real
+GET  /simulation/{id}/result        Resultado com score de risco
+GET  /simulation/{id}/heatmap       Score de risco por região brasileira
+GET  /simulation/{id}/graph         Todos os ticks (usado pelo replay)
+POST /simulation/compare            Compara todas as intervenções em paralelo
+POST /simulation/multi              Simulação paralela de até 5 seeds
+GET  /simulation/compare-view       Dados de 2 simulações para comparação
+GET  /simulation/{id}/export        Ticks em CSV ou JSON
+POST /seeds/collect                 Coleta seeds RSS da Lupa e AosFatos
+GET  /seeds/db/list                 Lista seeds coletadas
+GET  /seeds/export/csv              Seeds em CSV
+POST /report/generate               Gera relatório IA (Claude Haiku) em português
+POST /report/generate/advanced      Relatório avançado (Claude Sonnet + web_search)
+GET  /report/{id}/export/md         Relatório em Markdown
+POST /alerts/config                 Configura alerta por e-mail
+GET  /alerts/config                 Consulta configuração de alerta
+DELETE /alerts/config               Desativa alerta
+GET  /health                        Status da API
 ```
 
 Documentação completa: https://desinfolab.onrender.com/docs
@@ -179,22 +185,33 @@ simulacra/
 │   ├── agents/
 │   │   ├── simulation_engine.py # SEIR Barabási-Albert
 │   │   ├── risk_scorer.py       # Score 0-100 com labels
-│   │   ├── report_agent.py      # Relatório PT via Claude API
+│   │   ├── report_agent.py      # Haiku (padrão) + Sonnet/web_search (avançado)
+│   │   ├── alert_manager.py     # SMTP em memória
+│   │   ├── cache.py             # TTL cache in-memory
 │   │   └── data_collector.py    # RSS Lupa + AosFatos
 │   ├── routers/
-│   │   ├── simulation.py        # start, stream, result, compare
+│   │   ├── simulation.py        # start, stream, result, heatmap, compare
 │   │   ├── seeds.py             # collect, list, translate
-│   │   └── reports.py           # generate, get
-│   ├── tests/                   # 70+ testes automatizados
-│   ├── database.py              # SQLite
-│   └── main.py                  # FastAPI + segurança
+│   │   ├── reports.py           # generate, advanced, get
+│   │   └── alerts.py            # config, status
+│   ├── tests/                   # 136 testes automatizados
+│   ├── database.py              # SQLite WAL
+│   └── main.py                  # FastAPI + segurança + rate limiting
 ├── frontend/
-│   └── src/pages/
-│       ├── Dashboard.jsx        # Histórico + status servidor
-│       ├── Simulate.jsx         # Formulário + SeedSelector
-│       ├── SimulationView.jsx   # SEIR ao vivo + D3 + score
-│       ├── Compare.jsx          # Comparação de 5 intervenções
-│       └── Report.jsx           # Relatório markdown
+│   └── src/
+│       ├── pages/
+│       │   ├── Dashboard.jsx    # Histórico + status servidor
+│       │   ├── Simulate.jsx     # Formulário + SeedSelector
+│       │   ├── SimulationView.jsx # SEIR ao vivo + replay + mapa
+│       │   ├── Compare.jsx      # Comparação de 5 intervenções
+│       │   ├── CompareView.jsx  # 2 simulações lado a lado
+│       │   ├── MultiSeed.jsx    # Até 5 seeds em paralelo
+│       │   └── Report.jsx       # Relatório markdown + PDF
+│       └── components/
+│           ├── BrazilHeatmap.jsx  # Mapa coroplético D3
+│           ├── ReplayControls.jsx # Replay cinemático com scrubbing
+│           ├── PropagationGraph.jsx # Grafo D3 force-directed
+│           └── AlertBanner.jsx    # Alertas por e-mail
 ├── .github/workflows/
 │   ├── ci.yml                   # Testes a cada push
 │   └── deploy-frontend.yml      # Deploy GitHub Pages
@@ -220,10 +237,10 @@ Ver [SECURITY.md](SECURITY.md)
 Ver [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Áreas prioritárias:
-- Perfis de agentes regionais brasileiros
-- Novas fontes de seeds (G1, BBC Brasil)
-- Visualizações alternativas
-- Export CSV/JSON dos resultados
+- Novas fontes de seeds (G1, BBC Brasil, GDELT)
+- Perfis de agentes com heterogeneidade (idade, letramento digital)
+- Visualizações alternativas (timeline, sankey)
+- Integração com APIs de redes sociais
 
 ---
 
@@ -234,13 +251,19 @@ Ver [CONTRIBUTING.md](CONTRIBUTING.md)
 - [x] Grafo D3 force-directed
 - [x] Score de risco 0-100
 - [x] Comparação de 5 intervenções em paralelo
-- [x] Report Agent com Claude API
+- [x] Report Agent — Claude Haiku (português)
+- [x] Relatório avançado — Claude Sonnet 4.6 + web_search
+- [x] Mapa coroplético interativo por região brasileira
+- [x] Replay cinemático com scrubbing e controle de velocidade
 - [x] Coleta RSS Lupa e AosFatos
+- [x] Multiplicadores regionais (SP, NE, SUL, CO, N, RJ)
+- [x] Multi-seed — até 5 notícias em paralelo
+- [x] Export CSV/JSON dos dados de simulação
+- [x] Alertas por e-mail via SMTP
+- [x] Dashboard comparativo de 2 simulações
 - [x] Deploy zero-cost
-- [ ] Perfis de agentes regionais brasileiros
-- [ ] Export CSV/JSON dos dados de simulação
-- [ ] Webhook de alerta automático
 - [ ] Integração GDELT para seeds internacionais
+- [ ] Perfis de agentes com heterogeneidade (idade, letramento)
 - [ ] Simulacra Insights — versão SaaS
 
 ---

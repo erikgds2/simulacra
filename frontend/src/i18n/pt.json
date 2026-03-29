@@ -77,7 +77,10 @@
     "nova_simulacao": "Nova simulação →",
     "toast_concluida": "Simulação concluída! Gere o relatório abaixo.",
     "toast_conexao_perdida": "Conexão com o servidor perdida.",
-    "toast_relatorio_ok": "Relatório gerado com sucesso!"
+    "toast_relatorio_ok": "Relatório gerado com sucesso!",
+    "gerar_relatorio_avancado": "🔬 Relatório Avançado (Sonnet)",
+    "gerando_avancado": "⏳ Buscando dados reais...",
+    "toast_relatorio_avancado_ok": "Relatório avançado gerado!"
   },
   "compare": {
     "titulo": "Comparar intervenções",
@@ -126,7 +129,8 @@
     "agentes_expostos": "agentes expostos",
     "da_rede": "da rede",
     "velocidade": "velocidade de propagação",
-    "regiao": "Região"
+    "regiao": "Região",
+    "advanced_badge": "Relatório Avançado · Claude Sonnet + Web Search"
   },
   "seeds": {
     "titulo": "Seeds disponíveis",

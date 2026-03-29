@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Line } from 'react-chartjs-2'
@@ -8,6 +8,8 @@ import {
 } from 'chart.js'
 import PropagationGraph from '../components/PropagationGraph'
 import AlertBanner from '../components/AlertBanner'
+import BrazilHeatmap from '../components/BrazilHeatmap'
+import ReplayControls from '../components/ReplayControls'
 import { apiFetch } from '../api'
 import BASE_URL from '../api'
 import { toast } from '../components/Toast'
@@ -42,8 +44,13 @@ export default function SimulationView() {
   const [connected, setConnected] = useState(false)
   const [result, setResult] = useState(null)
   const [generatingReport, setGeneratingReport] = useState(false)
+  const [generatingAdvancedReport, setGeneratingAdvancedReport] = useState(false)
   const [reportError, setReportError] = useState(null)
+  const [heatmapData, setHeatmapData] = useState(null)
+  const [replayTicks, setReplayTicks] = useState([])
+  const [replaySlice, setReplaySlice] = useState(null)
   const esRef = useRef(null)
+  const chartRef = useRef(null)
 
   useEffect(() => {
     if (!id) return
@@ -59,7 +66,16 @@ export default function SimulationView() {
         toast(t('simulation_view.toast_concluida'), 'success')
         apiFetch(`/simulation/${id}/result`)
           .then(r => r.json())
-          .then(d => setResult(d))
+          .then(d => {
+            setResult(d)
+            return apiFetch(`/simulation/${id}/heatmap`)
+          })
+          .then(r => r.json())
+          .then(h => setHeatmapData(h.regions))
+          .catch(() => {})
+        apiFetch(`/simulation/${id}/graph`)
+          .then(r => r.json())
+          .then(g => setReplayTicks(g.ticks || []))
           .catch(() => {})
         return
       }
@@ -73,14 +89,15 @@ export default function SimulationView() {
     return () => es.close()
   }, [id])
 
-  const labels = ticks.map(t => t.tick)
+  const displayTicks = replaySlice || ticks
+  const labels = displayTicks.map(t => t.tick)
   const chartData = {
     labels,
     datasets: [
-      { label: t('simulation_view.suscetiveis'), data: ticks.map(tick => tick.S), borderColor: COLORS.S, backgroundColor: COLORS.S + '22', tension: 0.3, pointRadius: 0 },
-      { label: t('simulation_view.expostos'),    data: ticks.map(tick => tick.E), borderColor: COLORS.E, backgroundColor: COLORS.E + '22', tension: 0.3, pointRadius: 0 },
-      { label: t('simulation_view.infectados'),  data: ticks.map(tick => tick.I), borderColor: COLORS.I, backgroundColor: COLORS.I + '22', tension: 0.3, pointRadius: 0 },
-      { label: t('simulation_view.recuperados'), data: ticks.map(tick => tick.R), borderColor: COLORS.R, backgroundColor: COLORS.R + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.suscetiveis'), data: displayTicks.map(tick => tick.S), borderColor: COLORS.S, backgroundColor: COLORS.S + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.expostos'),    data: displayTicks.map(tick => tick.E), borderColor: COLORS.E, backgroundColor: COLORS.E + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.infectados'),  data: displayTicks.map(tick => tick.I), borderColor: COLORS.I, backgroundColor: COLORS.I + '22', tension: 0.3, pointRadius: 0 },
+      { label: t('simulation_view.recuperados'), data: displayTicks.map(tick => tick.R), borderColor: COLORS.R, backgroundColor: COLORS.R + '22', tension: 0.3, pointRadius: 0 },
     ],
   }
 
@@ -93,6 +110,12 @@ export default function SimulationView() {
       y: { ticks: { color: '#94A3B8' }, grid: { color: '#112236' } },
     },
   }
+
+  const handleReplayTick = useCallback((tick) => {
+    const idx = replayTicks.findIndex(t => t.tick === tick.tick)
+    if (idx < 0) return
+    setReplaySlice(replayTicks.slice(0, idx + 1))
+  }, [replayTicks])
 
   async function handleGenerateReport() {
     setGeneratingReport(true)
@@ -112,6 +135,27 @@ export default function SimulationView() {
     } catch (err) {
       setReportError(err.message)
       setGeneratingReport(false)
+    }
+  }
+
+  async function handleGenerateAdvancedReport() {
+    setGeneratingAdvancedReport(true)
+    setReportError(null)
+    try {
+      const res = await apiFetch('/report/generate/advanced', {
+        method: 'POST',
+        body: JSON.stringify({ simulation_id: id }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.detail || `Erro ${res.status}`)
+      }
+      const data = await res.json()
+      toast(t('simulation_view.toast_relatorio_avancado_ok'), 'success')
+      navigate(`/report/${data.id}`)
+    } catch (err) {
+      setReportError(err.message)
+      setGeneratingAdvancedReport(false)
     }
   }
 
@@ -179,6 +223,8 @@ export default function SimulationView() {
         </div>
       )}
 
+      <BrazilHeatmap regions={heatmapData} />
+
       <AlertBanner />
 
       <div style={{
@@ -202,6 +248,14 @@ export default function SimulationView() {
       </div>
 
       {done && (
+        <>
+        {replayTicks.length > 0 && (
+          <ReplayControls
+            ticks={replayTicks}
+            onTick={handleReplayTick}
+            peakTick={result?.time_to_peak}
+          />
+        )}
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             type="button"
@@ -217,6 +271,21 @@ export default function SimulationView() {
             }}
           >
             {generatingReport ? t('simulation_view.gerando') : t('simulation_view.gerar_relatorio')}
+          </button>
+          <button
+            type="button"
+            onClick={handleGenerateAdvancedReport}
+            disabled={generatingAdvancedReport}
+            style={{
+              background: generatingAdvancedReport ? '#112236' : '#7c3aed',
+              color: generatingAdvancedReport ? '#475569' : '#ffffff', border: 'none',
+              borderRadius: '8px', padding: '0.75rem 2rem',
+              fontSize: '1rem', fontWeight: 600,
+              cursor: generatingAdvancedReport ? 'not-allowed' : 'pointer',
+              opacity: generatingAdvancedReport ? 0.8 : 1,
+            }}
+          >
+            {generatingAdvancedReport ? t('simulation_view.gerando_avancado') : t('simulation_view.gerar_relatorio_avancado')}
           </button>
           <button
             type="button"
@@ -261,6 +330,7 @@ export default function SimulationView() {
             </span>
           )}
         </div>
+        </>
       )}
     </div>
   )
