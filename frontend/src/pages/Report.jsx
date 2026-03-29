@@ -293,8 +293,7 @@ function MetricCard({ label, value, sub }) {
       borderRadius: '8px',
       padding: '0.875rem 1.1rem',
       textAlign: 'center',
-      flex: 1,
-      minWidth: 110,
+      minWidth: 0,
     }}>
       <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{value}</div>
       <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>{label}</div>
@@ -471,6 +470,11 @@ export default function Report() {
               <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748b' }}>
                 <div>{new Date(report.created_at).toLocaleString('pt-BR')}</div>
                 <div style={{ marginTop: 2 }}>{t('report.modelo')}: {report.model}</div>
+                {report.model === 'claude-sonnet-4-6' && (
+                  <div style={{ marginTop: 4, color: '#7c3aed', fontWeight: 700, fontSize: '0.7rem' }}>
+                    {t('report.advanced_badge')}
+                  </div>
+                )}
                 {report.cached && <div style={{ color: '#16a34a', marginTop: 2 }}>{t('report.cache')}</div>}
               </div>
             </div>
@@ -494,7 +498,7 @@ export default function Report() {
                 </div>
 
                 {/* Metric cards */}
-                <div className="metric-cards-row" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                <div className="metric-cards-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
                   <MetricCard
                     label={t('report.agentes')}
                     value={sim.num_agents}

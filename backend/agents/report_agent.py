@@ -138,3 +138,122 @@ def generate_report(sim_id: str) -> dict:
 
     report = get_report_by_simulation(sim_id)
     return {**report, "cached": False}
+
+
+MODEL_ADVANCED = "claude-sonnet-4-6"
+
+
+def _build_prompt_advanced(sim: dict, ticks: list[dict]) -> str:
+    """Prompt enriquecido para o agente avançado com web_search."""
+    base = _build_prompt(sim, ticks)
+    # Replace the last line (footer) and add web_search instructions
+    base = base.rsplit("*Relatório gerado", 1)[0]
+    region_code = sim.get("region")
+    region_name = REGION_NAMES.get(region_code, "Brasil") if region_code else "Brasil"
+    return base + f"""
+## 6. Contexto Real e Dados Atualizados (use web_search)
+Use a ferramenta web_search para buscar:
+1. Casos reais recentes de desinformação similares ao texto simulado no Brasil
+2. Dados atuais de uso de redes sociais no Brasil (especialmente na região {region_name})
+3. Eficácia documentada de intervenções contra desinformação
+
+Incorpore os dados encontrados nas seções anteriores, citando as fontes.
+
+---
+*Relatório gerado automaticamente pelo Simulacra · Modelo: {MODEL_ADVANCED} (web-enhanced)*"""
+
+
+def generate_report_advanced(sim_id: str, use_web_search: bool = True) -> dict:
+    """Gera relatório avançado usando Claude Sonnet com web_search.
+
+    Returns:
+        dict com chaves: report_id, simulation_id, markdown, model, created_at, cached
+    """
+    env = os.getenv("ENVIRONMENT", "development")
+    if env == "test":
+        raise ValueError("Agente avançado desabilitado em ambiente de teste.")
+
+    # Cache check — chave separada do relatório básico
+    from database import get_connection
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM reports WHERE simulation_id = ? AND model = ?",
+            (sim_id, MODEL_ADVANCED),
+        ).fetchone()
+        if row:
+            return {**dict(row), "cached": True}
+    finally:
+        conn.close()
+
+    sim = get_simulation(sim_id)
+    if not sim:
+        raise ValueError(f"Simulação '{sim_id}' não encontrada.")
+    if sim["status"] != "finished":
+        raise ValueError(
+            f"Simulação '{sim_id}' ainda não concluída (status: {sim['status']})."
+        )
+
+    ticks = get_simulation_ticks(sim_id)
+    prompt = _build_prompt_advanced(sim, ticks)
+
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+    tools = []
+    if use_web_search:
+        tools = [{"type": "web_search_20250305", "name": "web_search"}]
+
+    messages = [{"role": "user", "content": prompt}]
+    full_text = ""
+
+    # Agentic loop — resolve tool calls until text response
+    for _ in range(6):  # max 6 turns
+        kwargs = {
+            "model": MODEL_ADVANCED,
+            "max_tokens": 3000,
+            "messages": messages,
+        }
+        if tools:
+            kwargs["tools"] = tools
+
+        response = client.messages.create(**kwargs)
+
+        # Collect text blocks
+        for block in response.content:
+            if hasattr(block, "text"):
+                full_text += block.text
+
+        if response.stop_reason == "end_turn":
+            break
+
+        # Handle tool use
+        if response.stop_reason == "tool_use":
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    # web_search results are returned by the API itself
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": "Pesquisa realizada.",
+                    })
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({"role": "user", "content": tool_results})
+        else:
+            break
+
+    if not full_text.strip():
+        full_text = "Relatório avançado não pôde ser gerado."
+
+    report_id = str(uuid.uuid4())
+    save_report(report_id, sim_id, full_text, MODEL_ADVANCED)
+
+    from database import get_connection
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM reports WHERE id = ?", (report_id,)
+        ).fetchone()
+        return {**dict(row), "cached": False}
+    finally:
+        conn.close()

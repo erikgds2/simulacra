@@ -234,6 +234,66 @@ async def get_graph(sim_id: str):
     }
 
 
+@router.get("/{sim_id}/heatmap")
+async def get_heatmap(sim_id: str):
+    """Retorna scores de risco por região brasileira para o mapa coroplético."""
+    _validate_sim_id(sim_id)
+    sim = get_simulation(sim_id)
+    if not sim:
+        raise HTTPException(status_code=404, detail="Simulação não encontrada")
+    if sim["status"] != "finished":
+        raise HTTPException(status_code=400, detail="Simulação ainda não concluída")
+
+    from agents.risk_scorer import calculate_risk_score
+
+    REGION_MULTIPLIERS = {
+        "SP": 1.20, "NE": 1.35, "SUL": 0.85,
+        "CO": 1.00, "N": 1.10, "RJ": 1.15,
+    }
+    REGION_NAMES = {
+        "SP": "São Paulo", "NE": "Nordeste", "SUL": "Sul",
+        "CO": "Centro-Oeste", "N": "Norte", "RJ": "Rio de Janeiro",
+    }
+
+    base_peak = sim.get("peak_infected") or 0
+    base_time = sim.get("time_to_peak") or 1
+    base_reach = sim.get("total_reach") or 0.0
+    base_ticks = sim.get("total_ticks") or 1
+    num_agents = sim.get("num_agents") or 200
+    intervention = sim.get("intervention")
+    sim_region = sim.get("region")
+    base_multiplier = REGION_MULTIPLIERS.get(sim_region, 1.0) if sim_region else 1.0
+
+    regions = []
+    for code, multiplier in REGION_MULTIPLIERS.items():
+        scale = multiplier / base_multiplier
+        scaled_peak = min(num_agents, round(base_peak * scale))
+        scaled_reach = min(1.0, round(base_reach * scale, 3))
+        scaled_time = max(1, round(base_time / scale))
+
+        risk = calculate_risk_score(
+            num_agents=num_agents,
+            peak_infected=scaled_peak,
+            time_to_peak=scaled_time,
+            total_reach=scaled_reach,
+            total_ticks=base_ticks,
+            intervention=intervention,
+        )
+        regions.append({
+            "code": code,
+            "name": REGION_NAMES[code],
+            "multiplier": multiplier,
+            "score": risk["score"],
+            "label": risk["label"],
+            "color": risk["color"],
+            "peak_infected": scaled_peak,
+            "total_reach_pct": round(scaled_reach * 100, 1),
+        })
+
+    regions.sort(key=lambda r: r["score"], reverse=True)
+    return {"simulation_id": sim_id, "regions": regions}
+
+
 @router.get("/{sim_id}/export")
 async def export_ticks(sim_id: str, format: str = "csv"):
     """Export simulation ticks as CSV or JSON file download."""

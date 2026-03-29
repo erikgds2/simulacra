@@ -62,6 +62,30 @@ def get_report_by_id(report_id: str):
     return {**report, "cached": True}
 
 
+@router.post("/generate/advanced")
+@limiter.limit("2/minute")
+def create_advanced_report(request: Request, body: GenerateReportRequest):
+    """Gera relatório avançado com Claude Sonnet + web_search (rate: 2/min)."""
+    import os
+    if os.getenv("ENVIRONMENT") == "test":
+        raise HTTPException(status_code=503, detail="Agente avançado desabilitado em ambiente de teste.")
+
+    sim_id = body.simulation_id.strip()
+    if not sim_id:
+        raise HTTPException(status_code=400, detail="simulation_id é obrigatório.")
+
+    try:
+        from agents.report_agent import generate_report_advanced
+        report = generate_report_advanced(sim_id)
+        logger.info(f"Relatório avançado gerado para simulação {sim_id}")
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Erro ao gerar relatório avançado para {sim_id}: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno ao gerar relatório avançado.")
+
+
 @router.get("/{report_id}/export/md")
 @limiter.limit("10/minute")
 async def export_report_md(request: Request, report_id: str):
