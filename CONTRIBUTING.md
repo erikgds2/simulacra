@@ -59,9 +59,13 @@ Todos os testes ficam em `backend/tests/`.
 
 - [ ] `python -m pytest tests/ -v` — todos passando
 - [ ] `npm run build` — frontend compila sem erro
-- [ ] Nenhuma credencial no código
+- [ ] Nenhuma credencial ou API key real no código (nunca commite `.env`, `*.key`, `*.pem`)
 - [ ] Nenhum `print()` de debug esquecido
 - [ ] README atualizado se adicionou funcionalidade nova
+- [ ] `pip-audit` executado no backend sem vulnerabilidades críticas (`cd backend && pip install pip-audit && pip-audit -r requirements.txt`)
+- [ ] `npm audit` executado no frontend sem vulnerabilidades high/critical (`cd frontend && npm audit --audit-level=high`)
+- [ ] Todo novo endpoint possui rate limiting via `@limiter.limit()`
+- [ ] Todos os novos inputs de usuário possuem validação via Pydantic (sem usar `str` raw em queries SQL)
 
 ## Dúvidas
 

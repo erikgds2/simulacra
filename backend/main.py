@@ -45,13 +45,15 @@ async def lifespan(app: FastAPI):
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
+_env = os.getenv("ENVIRONMENT", "development")
 app = FastAPI(
     title="Simulacra API",
     version="1.2.0",
     description="Motor de simulação de comportamento coletivo para o Brasil. Simule propagação de desinformação, teste intervenções e receba relatórios analíticos em português.",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if _env != "production" else None,
+    redoc_url="/redoc" if _env != "production" else None,
+    openapi_url="/openapi.json" if _env != "production" else None,
 )
 
 app.state.limiter = limiter
@@ -104,6 +106,8 @@ async def security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = (
         "default-src 'none'; frame-ancestors 'none'"
     )
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
     # Fix: Add request ID for traceability
     response.headers["X-Request-Id"] = str(uuid.uuid4())
     # Cache-Control: no-store on sensitive endpoints
@@ -129,15 +133,19 @@ async def generic_exception_handler(request: Request, exc: Exception):
 async def health(request: Request):
     from database import DB_PATH
     from agents.cache import cache_stats
-    return {
+    env = os.getenv("ENVIRONMENT", "development")
+    response = {
         "status": "ok",
         "app": "Simulacra",
         "version": "1.2.0",
-        "environment": os.getenv("ENVIRONMENT", "development"),
-        "db_path": str(DB_PATH),
-        "db_exists": DB_PATH.exists(),
+        "environment": env,
         "cache": cache_stats(),
     }
+    # Only expose filesystem info in non-production environments
+    if env != "production":
+        response["db_path"] = str(DB_PATH)
+        response["db_exists"] = DB_PATH.exists()
+    return response
 
 
 from routers.simulation import router as simulation_router

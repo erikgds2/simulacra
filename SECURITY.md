@@ -12,7 +12,6 @@
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Chave da API Anthropic | Sim |
 | `ALLOWED_ORIGINS` | Origens CORS permitidas | Não (default: localhost) |
-| `TWITTER_BEARER_TOKEN` | Token Twitter/X | Não |
 
 ## Variáveis de ambiente sensíveis
 
@@ -33,14 +32,30 @@ Configure estas variáveis no painel do seu serviço de deploy (Render, Railway,
 
 | Endpoint | Limite |
 |---|---|
-| `POST /simulation/start` | 10 req/min |
-| `GET /simulation/:id/stream` | 20 req/min |
-| `POST /seeds/collect` | 5 req/min |
-| Global | 60 req/min |
+| `POST /simulation/start` | 10/min |
+| `GET /simulation/:id/stream` | 20/min |
+| `GET /simulation/:id/result` | 20/min |
+| `GET /simulation/:id/heatmap` | 20/min |
+| `GET /simulation/:id/graph` | 20/min |
+| `GET /simulation/:id/export` | 10/min |
+| `GET /simulation/list` | 30/min |
+| `POST /simulation/compare` | 5/min |
+| `POST /simulation/multi` | 3/min |
+| `POST /report/generate` | 5/min |
+| `POST /report/generate/advanced` | 2/min |
+| `GET /report/by-simulation/:id` | 20/min |
+| `GET /report/:id` | 20/min |
+| `POST /seeds/collect` | 5/min |
+| `GET /seeds/*` | 30/min |
+| `POST /alerts/config` | 10/min |
+| `GET /alerts/config` | 10/min |
+| `DELETE /alerts/config` | 10/min |
+| `GET /health` | 60/min |
+| Global default | 60/min |
 
 ## Reportar vulnerabilidades
 
-Se encontrar uma vulnerabilidade de segurança, abra uma issue privada ou envie email para o mantenedor. Não abra issues públicas para vulnerabilidades de segurança.
+Se encontrar uma vulnerabilidade de segurança, use o processo de advisory privado do GitHub (aba Security → "Report a vulnerability"). Não abra issues públicas para vulnerabilidades de segurança.
 
 ## Checklist antes de abrir Pull Request
 
@@ -48,3 +63,5 @@ Se encontrar uma vulnerabilidade de segurança, abra uma issue privada ou envie 
 - [ ] Nenhum `print()` ou `console.log()` com dados sensíveis
 - [ ] Inputs validados com Pydantic antes de processar
 - [ ] Nenhuma dependência nova sem justificativa no PR
+- [ ] `pip-audit` executado sem vulnerabilidades críticas
+- [ ] `npm audit` executado sem vulnerabilidades de nível high/critical
