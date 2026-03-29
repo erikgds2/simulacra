@@ -11,7 +11,7 @@
   "dependencies": {
     "chart.js": "^4.4.2",
     "d3": "^7.9.0",
-    "i18next": "^25.10.4",
+    "i18next": "^26.0.1",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
