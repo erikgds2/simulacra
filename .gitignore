@@ -55,3 +55,9 @@ desktop.ini
 # Logs
 logs/
 *.log
+
+# Generated data
+backend/data/seeds/
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
