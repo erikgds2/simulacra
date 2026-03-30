@@ -73,6 +73,14 @@ def init_db() -> None:
 
             CREATE INDEX IF NOT EXISTS idx_simulations_created
                 ON simulations(created_at DESC);
+
+            CREATE TABLE IF NOT EXISTS user_daily_reports (
+                user_id TEXT NOT NULL,
+                report_date TEXT NOT NULL,
+                standard_count INTEGER NOT NULL DEFAULT 0,
+                advanced_count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (user_id, report_date)
+            );
         """)
         # Migration: add region column to existing databases
         try:
@@ -239,3 +247,93 @@ def get_report(report_id: str) -> dict | None:
             "SELECT * FROM reports WHERE id = ?", (report_id,)
         ).fetchone()
         return dict(row) if row else None
+
+
+def check_and_increment_daily_limit(
+    user_id: str, report_type: str, limit: int
+) -> tuple[bool, int]:
+    """
+    Verifica e incrementa o contador diário de relatórios por usuário.
+
+    Args:
+        user_id: ID do usuário (sub do JWT Supabase)
+        report_type: "standard" ou "advanced"
+        limit: limite máximo por dia
+
+    Returns:
+        (allowed, seconds_until_reset) — se allowed=False, seconds indica
+        quantos segundos até o reset (meia-noite UTC).
+    """
+    from datetime import datetime, timedelta, timezone
+
+    # Whitelist explícita — nenhuma f-string usada em SQL
+    if report_type not in ("standard", "advanced"):
+        return True, 0
+
+    now = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO user_daily_reports (user_id, report_date, standard_count, advanced_count)
+            VALUES (?, ?, 0, 0)
+            ON CONFLICT(user_id, report_date) DO NOTHING
+            """,
+            (user_id, today),
+        )
+
+        # Duas queries estáticas em vez de f-string com nome de coluna
+        if report_type == "standard":
+            row = conn.execute(
+                "SELECT standard_count FROM user_daily_reports WHERE user_id = ? AND report_date = ?",
+                (user_id, today),
+            ).fetchone()
+            current = row["standard_count"] if row else 0
+        else:
+            row = conn.execute(
+                "SELECT advanced_count FROM user_daily_reports WHERE user_id = ? AND report_date = ?",
+                (user_id, today),
+            ).fetchone()
+            current = row["advanced_count"] if row else 0
+
+        if current >= limit:
+            tomorrow = datetime.combine(
+                now.date() + timedelta(days=1),
+                datetime.min.time(),
+                tzinfo=timezone.utc,
+            )
+            reset_in = int((tomorrow - now).total_seconds())
+            return False, reset_in
+
+        # Incremento com query estática por tipo
+        if report_type == "standard":
+            conn.execute(
+                "UPDATE user_daily_reports SET standard_count = standard_count + 1 WHERE user_id = ? AND report_date = ?",
+                (user_id, today),
+            )
+        else:
+            conn.execute(
+                "UPDATE user_daily_reports SET advanced_count = advanced_count + 1 WHERE user_id = ? AND report_date = ?",
+                (user_id, today),
+            )
+        return True, 0
+
+
+def get_user_daily_usage(user_id: str) -> dict:
+    """Retorna o uso diário atual do usuário."""
+    from datetime import datetime, timezone
+
+    today = datetime.now(timezone.utc).date().isoformat()
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT standard_count, advanced_count FROM user_daily_reports WHERE user_id = ? AND report_date = ?",
+            (user_id, today),
+        ).fetchone()
+        if not row:
+            return {"standard_count": 0, "advanced_count": 0, "date": today}
+        return {
+            "standard_count": row["standard_count"],
+            "advanced_count": row["advanced_count"],
+            "date": today,
+        }
