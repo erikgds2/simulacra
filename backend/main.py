@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from utils import get_client_ip
 
 load_dotenv()
 
@@ -43,7 +44,7 @@ async def lifespan(app: FastAPI):
     logger.info("Simulacra encerrado")
 
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+limiter = Limiter(key_func=get_client_ip, default_limits=["60/minute"])
 
 _env = os.getenv("ENVIRONMENT", "development")
 app = FastAPI(
@@ -70,7 +71,7 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
@@ -131,29 +132,31 @@ async def generic_exception_handler(request: Request, exc: Exception):
 @app.get("/health", tags=["infra"])
 @limiter.limit("60/minute")
 async def health(request: Request):
-    from database import DB_PATH
     from agents.cache import cache_stats
+    from database import DB_PATH
     env = os.getenv("ENVIRONMENT", "development")
-    response = {
+    # Produção: resposta mínima para não vazar informações de versão/infra
+    if env == "production":
+        return {"status": "ok"}
+    return {
         "status": "ok",
         "app": "Simulacra",
         "version": "1.2.0",
         "environment": env,
         "cache": cache_stats(),
+        "db_path": str(DB_PATH),
+        "db_exists": DB_PATH.exists(),
     }
-    # Only expose filesystem info in non-production environments
-    if env != "production":
-        response["db_path"] = str(DB_PATH)
-        response["db_exists"] = DB_PATH.exists()
-    return response
 
 
 from routers.simulation import router as simulation_router
 from routers.seeds import router as seeds_router
 from routers.reports import router as reports_router
 from routers.alerts import router as alerts_router
+from routers.auth import router as auth_router
 
 app.include_router(simulation_router)
 app.include_router(seeds_router)
 app.include_router(reports_router)
 app.include_router(alerts_router)
+app.include_router(auth_router)

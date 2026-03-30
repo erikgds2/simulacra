@@ -1,35 +1,73 @@
 import logging
+from typing import Optional
 
 from agents.report_agent import generate_report
-from database import get_report, get_report_by_simulation
-from fastapi import APIRouter, HTTPException, Request
+from auth.middleware import auth_enabled, get_current_user
+from database import (
+    check_and_increment_daily_limit,
+    get_report,
+    get_report_by_simulation,
+)
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from slowapi import Limiter
-from slowapi.util import get_remote_address
+from utils import get_client_ip
 
 logger = logging.getLogger("simulacra")
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_client_ip)
 
 router = APIRouter(prefix="/report", tags=["report"])
+
+_LIMIT_STANDARD = 2   # relatórios simples por dia por usuário
+_LIMIT_ADVANCED = 1   # relatórios avançados por dia por usuário
 
 
 class GenerateReportRequest(BaseModel):
     simulation_id: str
 
 
+def _check_daily_limit(user: Optional[dict], report_type: str, limit: int) -> None:
+    """Verifica o limite diário se auth estiver habilitada e usuário logado."""
+    if not auth_enabled() or user is None:
+        return  # Sem auth → sem limite por usuário
+
+    allowed, reset_in = check_and_increment_daily_limit(
+        user["user_id"], report_type, limit
+    )
+    if not allowed:
+        hours = reset_in // 3600
+        minutes = (reset_in % 3600) // 60
+        reset_msg = f"{hours}h {minutes}min" if hours else f"{minutes}min"
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message": f"Limite diário de relatórios {'simples' if report_type == 'standard' else 'avançados'} atingido ({limit}/dia).",
+                "reset_in": reset_msg,
+                "reset_in_seconds": reset_in,
+            },
+        )
+
+
 @router.post("/generate")
 @limiter.limit("5/minute")
-def create_report(request: Request, body: GenerateReportRequest):
+def create_report(
+    request: Request,
+    body: GenerateReportRequest,
+    user: Optional[dict] = Depends(get_current_user),
+):
     """Gera (ou retorna do cache) o relatório de uma simulação concluída."""
     sim_id = body.simulation_id.strip()
     if not sim_id:
         raise HTTPException(status_code=400, detail="simulation_id é obrigatório.")
 
-    # Cache check antes de chamar o agente
+    # Cache check antes de consumir o limite diário
     cached = get_report_by_simulation(sim_id)
     if cached:
         logger.info(f"Relatório cacheado retornado para simulação {sim_id}")
         return {**cached, "cached": True}
+
+    # Só conta no limite quando gera de fato (cache miss)
+    _check_daily_limit(user, "standard", _LIMIT_STANDARD)
 
     try:
         report = generate_report(sim_id)
@@ -66,7 +104,11 @@ def get_report_by_id(request: Request, report_id: str):
 
 @router.post("/generate/advanced")
 @limiter.limit("2/minute")
-def create_advanced_report(request: Request, body: GenerateReportRequest):
+def create_advanced_report(
+    request: Request,
+    body: GenerateReportRequest,
+    user: Optional[dict] = Depends(get_current_user),
+):
     """Gera relatório avançado com Claude Sonnet + web_search (rate: 2/min)."""
     import os
     if os.getenv("ENVIRONMENT") == "test":
@@ -75,6 +117,9 @@ def create_advanced_report(request: Request, body: GenerateReportRequest):
     sim_id = body.simulation_id.strip()
     if not sim_id:
         raise HTTPException(status_code=400, detail="simulation_id é obrigatório.")
+
+    # Limite diário ANTES de qualquer cache — avançado consome Claude Sonnet
+    _check_daily_limit(user, "advanced", _LIMIT_ADVANCED)
 
     try:
         from agents.report_agent import generate_report_advanced
