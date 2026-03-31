@@ -82,20 +82,24 @@ def init_db() -> None:
                 PRIMARY KEY (user_id, report_date)
             );
         """)
-        # Migration: add region column to existing databases
-        try:
-            conn.execute("ALTER TABLE simulations ADD COLUMN region TEXT")
-        except Exception:
-            pass  # Column already exists
+        # Migrations para bancos existentes
+        for migration in [
+            "ALTER TABLE simulations ADD COLUMN region TEXT",
+            "ALTER TABLE simulations ADD COLUMN user_id TEXT",
+        ]:
+            try:
+                conn.execute(migration)
+            except Exception:
+                pass  # Column already exists
 
 
-def save_simulation(sim_id: str, config: dict) -> None:
+def save_simulation(sim_id: str, config: dict, user_id: str | None = None) -> None:
     with get_connection() as conn:
         conn.execute(
             """
             INSERT OR IGNORE INTO simulations
-                (id, seed_text, seed_id, num_agents, intervention, random_seed, region, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'ready', ?)
+                (id, seed_text, seed_id, num_agents, intervention, random_seed, region, status, created_at, user_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'ready', ?, ?)
             """,
             (
                 sim_id,
@@ -106,6 +110,7 @@ def save_simulation(sim_id: str, config: dict) -> None:
                 config.get("random_seed", 42),
                 config.get("region"),
                 datetime.now(timezone.utc).isoformat(),
+                user_id,
             ),
         )
 
@@ -164,17 +169,28 @@ def get_simulation_ticks(sim_id: str) -> list[dict]:
         ]
 
 
-def list_simulations(limit: int = 20, offset: int = 0) -> list[dict]:
+def list_simulations(limit: int = 20, offset: int = 0, user_id: str | None = None) -> list[dict]:
     with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT * FROM simulations ORDER BY created_at DESC LIMIT ? OFFSET ?", (limit, offset)
-        ).fetchall()
+        if user_id is None:
+            # sem filtro (admin ou auth desabilitada)
+            rows = conn.execute(
+                "SELECT * FROM simulations ORDER BY created_at DESC LIMIT ? OFFSET ?", (limit, offset)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM simulations WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (user_id, limit, offset),
+            ).fetchall()
         return [dict(r) for r in rows]
 
 
-def count_simulations() -> int:
+def count_simulations(user_id: str | None = None) -> int:
     with get_connection() as conn:
-        return conn.execute("SELECT COUNT(*) FROM simulations").fetchone()[0]
+        if user_id is None:
+            return conn.execute("SELECT COUNT(*) FROM simulations").fetchone()[0]
+        return conn.execute(
+            "SELECT COUNT(*) FROM simulations WHERE user_id = ?", (user_id,)
+        ).fetchone()[0]
 
 
 def save_seed_to_db(seed: dict) -> bool:

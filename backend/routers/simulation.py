@@ -5,11 +5,15 @@ import uuid
 from typing import AsyncGenerator, Literal, Optional
 
 import bleach
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, field_validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+
+from auth.middleware import auth_enabled, get_current_user
+
+ADMIN_EMAIL = "erikgds@gmail.com"
 
 from agents.simulation_engine import SimulationEngine
 from database import (
@@ -75,7 +79,7 @@ class StartRequest(BaseModel):
 
 @router.post("/start")
 @limiter.limit("10/minute")
-async def start_simulation(request: Request, req: StartRequest):
+async def start_simulation(request: Request, req: StartRequest, user: dict = Depends(get_current_user)):
     # Fix 5: Prevent unbounded _engines dict memory DoS
     if len(_engines) >= 100:
         raise HTTPException(
@@ -90,25 +94,32 @@ async def start_simulation(request: Request, req: StartRequest):
         region=req.region,
     )
     _engines[sim_id] = engine
-    save_simulation(sim_id, req.model_dump())
+    user_id = user["user_id"] if user else None
+    save_simulation(sim_id, req.model_dump(), user_id=user_id)
     return {"simulation_id": sim_id, "status": "ready"}
 
 
 @router.get("/list")
 @limiter.limit("30/minute")
-async def list_all(request: Request, limit: int = 20, offset: int = 0):
+async def list_all(request: Request, limit: int = 20, offset: int = 0, user: dict = Depends(get_current_user)):
     from agents.cache import cache_get, cache_set
-    cache_key = f"sim_list:{limit}:{offset}"
+    from fastapi.responses import JSONResponse
+
+    # Admin vê tudo; outros usuários veem só as suas
+    is_admin = (not auth_enabled()) or (user and user.get("email") == ADMIN_EMAIL)
+    filter_user_id = None if is_admin else (user["user_id"] if user else None)
+
+    cache_key = f"sim_list:{filter_user_id}:{limit}:{offset}"
     cached = cache_get(cache_key)
     if cached is not None:
         return cached
-    sims = list_simulations(limit=limit, offset=offset)
-    total = count_simulations()
+
+    sims = list_simulations(limit=limit, offset=offset, user_id=filter_user_id)
+    total = count_simulations(user_id=filter_user_id)
     result = {"simulations": sims, "total": total, "limit": limit, "offset": offset}
     cache_set(cache_key, result, ttl=15)
-    from fastapi.responses import JSONResponse
     response = JSONResponse(content=result)
-    response.headers["Cache-Control"] = "public, max-age=15"
+    response.headers["Cache-Control"] = "no-store"
     return response
 
 
