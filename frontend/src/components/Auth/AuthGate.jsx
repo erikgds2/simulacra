@@ -12,7 +12,7 @@ export default function AuthGate({ children }) {
   const { user, loading, openAuthModal, isAuthEnabled } = useAuthStore()
 
   // Auth desabilitada (open source / dev sem vars) → passa direto
-  if (!isAuthEnabled()) return children
+  if (!isAuthEnabled()) return <>{children}</>
 
   // Aguarda verificação da sessão inicial
   if (loading) {
@@ -36,7 +36,7 @@ export default function AuthGate({ children }) {
   }
 
   // Logado → acesso liberado
-  if (user) return children
+  if (user) return <>{children}</>
 
   // Não logado → tela de boas-vindas com CTA de login
   return (

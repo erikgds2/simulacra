@@ -5,12 +5,12 @@ from typing import Optional
 from auth.disposable_emails import is_disposable_email
 from auth.middleware import auth_enabled, get_current_user
 from database import get_user_daily_usage
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from slowapi import Limiter
-from slowapi.util import get_remote_address
+from utils import get_client_ip
 
 logger = logging.getLogger("simulacra")
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_client_ip)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -20,7 +20,7 @@ _DAILY_LIMITS = {"standard": 2, "advanced": 1}
 @router.get("/validate-email")
 @limiter.limit("20/minute")
 def validate_email(
-    request,  # injected by slowapi
+    request: Request,
     email: str = Query(..., description="E-mail a validar"),
 ):
     """
