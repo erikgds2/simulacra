@@ -129,7 +129,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 
 # Fix 10: /health with rate limit
-@app.get("/health", tags=["infra"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["infra"])
 @limiter.limit("60/minute")
 async def health(request: Request):
     from agents.cache import cache_stats
