@@ -11,8 +11,8 @@
 > **Motor de simulação de comportamento coletivo para o Brasil.**
 > Simule como informações se propagam em redes sociais, teste intervenções e receba relatórios analíticos em português gerados por IA.
 
-**Demo:** https://erikgds2.github.io/simulacra/
-**API:** https://desinfolab.onrender.com/docs
+**Demo:** https://erikgds2.github.io/simulacra/ _(requer login — crie uma conta gratuita)_
+**API:** https://desinfolab.onrender.com/docs _(docs desabilitados em produção)_
 
 ---
 
@@ -68,9 +68,6 @@ Simulacra é um motor open source de simulação de comportamento coletivo. Voc�
 
 ## Casos de uso
 
-**Fintechs e bancos digitais**
-Simule como uma fake news sobre o Pix ou sobre solvência institucional se espalharia. Qual resposta reduz mais o pânico antes que ele se instale?
-
 **Agências de comunicação e PR**
 Cole o texto de uma notícia negativa e compare: resposta imediata vs. silêncio vs. contra-narrativa. Leve dados concretos para a reunião com o cliente.
 
@@ -111,6 +108,7 @@ O motor usa o modelo epidemiológico SEIR em grafos Barabási-Albert — a mesma
 | Simulação | NetworkX + NumPy |
 | IA | Claude API (Haiku 4.5 · Sonnet 4.6) |
 | Banco | SQLite |
+| Auth | Supabase (OAuth Google + email/senha) |
 | Frontend | React 18 + Vite |
 | Visualização | D3.js + Chart.js |
 | Deploy backend | Render (free tier) |
@@ -141,6 +139,17 @@ npm run dev
 # http://localhost:5173
 ```
 
+> **Auth é opcional no modo local.** Sem `SUPABASE_URL` configurado, o projeto roda sem exigir login.
+> Para habilitar auth localmente, crie um projeto em [supabase.com](https://supabase.com) e adicione ao `.env` do backend:
+> ```
+> SUPABASE_URL=https://<seu-projeto>.supabase.co
+> ```
+> E ao `.env` do frontend:
+> ```
+> VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
+> VITE_SUPABASE_ANON_KEY=<sua-anon-key>
+> ```
+
 ```bash
 # Testes
 cd backend
@@ -164,12 +173,14 @@ GET  /simulation/{id}/export        Ticks em CSV ou JSON
 POST /seeds/collect                 Coleta seeds RSS da Lupa e AosFatos
 GET  /seeds/db/list                 Lista seeds coletadas
 GET  /seeds/export/csv              Seeds em CSV
-POST /report/generate               Gera relatório IA (Claude Haiku) em português
-POST /report/generate/advanced      Relatório avançado (Claude Sonnet + web_search)
+POST /report/generate               Gera relatório IA (Claude Haiku) — limite: 2/dia por usuário
+POST /report/generate/advanced      Relatório avançado (Claude Sonnet + web_search) — limite: 1/dia por usuário
 GET  /report/{id}/export/md         Relatório em Markdown
 POST /alerts/config                 Configura alerta por e-mail
 GET  /alerts/config                 Consulta configuração de alerta
 DELETE /alerts/config               Desativa alerta
+GET  /auth/validate-email           Verifica se e-mail é descartável/temporário
+GET  /auth/status                   Status de autenticação e uso diário do usuário
 GET  /health                        Status da API
 ```
 
@@ -189,13 +200,17 @@ simulacra/
 │   │   ├── alert_manager.py     # SMTP em memória
 │   │   ├── cache.py             # TTL cache in-memory
 │   │   └── data_collector.py    # RSS Lupa + AosFatos
+│   ├── auth/
+│   │   ├── middleware.py        # Verificação JWT via JWKS (ES256/RS256)
+│   │   └── disposable_emails.py # Blocklist ~600 domínios descartáveis
 │   ├── routers/
 │   │   ├── simulation.py        # start, stream, result, heatmap, compare
 │   │   ├── seeds.py             # collect, list, translate
-│   │   ├── reports.py           # generate, advanced, get
-│   │   └── alerts.py            # config, status
+│   │   ├── reports.py           # generate, advanced, get (com limite diário)
+│   │   ├── alerts.py            # config, status
+│   │   └── auth.py              # validate-email, status
 │   ├── tests/                   # 136 testes automatizados
-│   ├── database.py              # SQLite WAL
+│   ├── database.py              # SQLite WAL + tabela user_daily_reports
 │   └── main.py                  # FastAPI + segurança + rate limiting
 ├── frontend/
 │   └── src/
@@ -208,6 +223,9 @@ simulacra/
 │       │   ├── MultiSeed.jsx    # Até 5 seeds em paralelo
 │       │   └── Report.jsx       # Relatório markdown + PDF
 │       └── components/
+│           ├── Auth/
+│           │   ├── AuthGate.jsx   # Route guard — bloqueia sem login
+│           │   └── AuthModal.jsx  # Modal login/cadastro/recuperação
 │           ├── BrazilHeatmap.jsx  # Mapa coroplético D3
 │           ├── ReplayControls.jsx # Replay cinemático com scrubbing
 │           ├── PropagationGraph.jsx # Grafo D3 force-directed
@@ -225,8 +243,14 @@ simulacra/
 - Rate limiting por IP em todos os endpoints
 - Sanitização XSS com bleach
 - Validação Pydantic com field_validator
-- Security headers em todas as respostas
+- Security headers completos em todas as respostas (CSP, HSTS, X-Frame-Options, etc.)
 - CORS restrito por origem
+- Autenticação JWT via JWKS (algoritmos ES256/RS256) — sem segredo compartilhado
+- Bloqueio de e-mails descartáveis (~600 domínios) no cadastro
+- Limite diário de relatórios por usuário (2 padrão / 1 avançado)
+- JWT armazenado em sessionStorage (não localStorage) — token some ao fechar a aba
+- Limite de tamanho de requisição (1 MB)
+- Sem stack traces em respostas de erro em produção
 
 Ver [SECURITY.md](SECURITY.md)
 
@@ -262,6 +286,8 @@ Ver [CONTRIBUTING.md](CONTRIBUTING.md)
 - [x] Alertas por e-mail via SMTP
 - [x] Dashboard comparativo de 2 simulações
 - [x] Deploy zero-cost
+- [x] Autenticação — Supabase OAuth Google + email/senha com confirmação
+- [x] Limite diário de relatórios por usuário (feature-flagged)
 - [ ] Integração GDELT para seeds internacionais
 - [ ] Perfis de agentes com heterogeneidade (idade, letramento)
 - [ ] Simulacra Insights — versão SaaS
