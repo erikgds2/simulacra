@@ -1,11 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from './LanguageSwitcher'
-import useAuthStore from '../store/authStore'
-
 export default function Navbar() {
   const { t } = useTranslation()
-  const { user, signOut, openAuthModal, isAuthEnabled } = useAuthStore()
 
   const links = [
     { to: '/', label: t('nav.painel') },
@@ -77,38 +74,6 @@ export default function Navbar() {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
             <span style={{ fontSize: '0.75rem', color: '#475569', whiteSpace: 'nowrap' }}>{t('nav.sistema_ativo')}</span>
           </div>
-          {isAuthEnabled() && (
-            user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.72rem', color: '#64748B', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user.email}
-                </span>
-                <button
-                  onClick={signOut}
-                  style={{
-                    padding: '0.3rem 0.7rem', fontSize: '0.75rem', fontWeight: 600,
-                    background: 'transparent', border: '1px solid #1e3a5f',
-                    borderRadius: '5px', color: '#64748B', cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Sair
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => openAuthModal('login')}
-                style={{
-                  padding: '0.35rem 0.9rem', fontSize: '0.8rem', fontWeight: 700,
-                  background: '#06B6D4', color: '#000',
-                  border: 'none', borderRadius: '6px', cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Entrar
-              </button>
-            )
-          )}
         </div>
       </div>
     </nav>

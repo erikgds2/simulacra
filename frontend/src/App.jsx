@@ -1,14 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense } from 'react'
 import './index.css'
 import Navbar from './components/Navbar.jsx'
 import { ToastContainer } from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
 import PageLoader from './components/PageLoader.jsx'
-import AuthModal from './components/Auth/AuthModal.jsx'
 import AuthGate from './components/Auth/AuthGate.jsx'
-import supabase from './lib/supabaseClient.js'
-import useAuthStore from './store/authStore.js'
 
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const Simulate = lazy(() => import('./pages/Simulate.jsx'))
@@ -20,26 +17,6 @@ const CompareView = lazy(() => import('./pages/CompareView.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 
 export default function App() {
-  const { setSession, authModalOpen } = useAuthStore()
-
-  useEffect(() => {
-    if (!supabase) {
-      useAuthStore.getState().setLoading(false)
-      return
-    }
-
-    // Carrega sessão existente ao iniciar
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    // Escuta mudanças de sessão (login, logout, refresh de token)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 
   return (
     <BrowserRouter basename={import.meta.env.PROD ? '/simulacra' : '/'}>
@@ -62,7 +39,6 @@ export default function App() {
           </ErrorBoundary>
           <ToastContainer />
         </AuthGate>
-        {authModalOpen && <AuthModal />}
       </div>
     </BrowserRouter>
   )

@@ -44,10 +44,7 @@ async def get_current_user(
         return None  # Auth desabilitada
 
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Autenticação necessária. Faça login para gerar relatórios.",
-        )
+        return None
 
     token = authorization.split(" ", 1)[1]
     try:
