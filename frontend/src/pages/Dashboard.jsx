@@ -45,24 +45,48 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    async function load() {
+    let cancelled = false
+
+    async function checkHealth(attempt = 0) {
       try {
         const health = await apiFetch('/health')
-        setApiOnline(health.ok)
+        if (cancelled) return
+        if (health.ok) {
+          setApiOnline(true)
+          return true
+        }
+      } catch {}
+      if (cancelled) return
+      // Render free tier: retenta até 4x com delay crescente (4s, 8s, 16s, 32s)
+      if (attempt < 4) {
+        await new Promise(r => setTimeout(r, 4000 * Math.pow(2, attempt)))
+        return checkHealth(attempt + 1)
+      }
+      setApiOnline(false)
+      return false
+    }
+
+    async function load() {
+      try {
+        const ok = await checkHealth()
+        if (!ok || cancelled) return
         const r = await apiFetch(`/simulation/list?limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`)
-        if (r.ok) {
+        if (r.ok && !cancelled) {
           const d = await r.json()
           setSimulations(d.simulations || [])
           setTotal(d.total || 0)
         }
       } catch {
-        setApiOnline(false)
-        toast(t('dashboard.erro_conexao'), 'error')
+        if (!cancelled) {
+          setApiOnline(false)
+          toast(t('dashboard.erro_conexao'), 'error')
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     load()
+    return () => { cancelled = true }
   }, [page])
 
   return (
